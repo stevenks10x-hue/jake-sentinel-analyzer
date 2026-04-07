@@ -63,7 +63,7 @@
         <p class="muted" style="margin-top:8px;">Now includes an investor section with capital stack, pref, split, hold period, and investor summary.</p>
       </div>
       <div class="btns noprint">
-        <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV</button>
+        <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV</button> <button onclick="clearAllInputs()">Clear All (Zero)</button>
         <button class="asset" id="asset-campground" onclick="setAsset('campground')">Campground</button>
         <button class="asset" id="asset-mhp" onclick="setAsset('mhp')">MHP</button>
         <button class="primary" onclick="window.print()">Print</button>
@@ -128,7 +128,7 @@
             </div>
 
             <div class="btns noprint">
-              <button onclick="clearInputs()">Clear Inputs</button>
+              <button onclick="clearInputs()">Reset to Defaults</button>
               <div class="helper" id="financingHelper"></div>
             </div>
           </div>
@@ -311,7 +311,29 @@
     if (price > 0 && $("downPct")) $("downPct").value = ((amt / price) * 100).toFixed(2);
   }
 
-  function clearInputs() {
+  
+function clearAllInputs() {
+  const ids = [
+    "dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears",
+    "primeRate","spreadPct","feePct","targetDscr","targetLtv","closingCosts",
+    "capexReserve","occupancyPct","nightlySites","operatingDays","nightlyRate",
+    "seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites",
+    "annualMonthlyRate","otherIncome","expenseRatio","investorEquity",
+    "sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct"
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = false;
+    else el.value = 0;
+  });
+  if (document.getElementById("feeFinanced")) document.getElementById("feeFinanced").checked = false;
+  clearSellerMessage();
+  clearInvestorMessage();
+  calc();
+}
+
+function clearInputs() {
     setValue("dealName", "My Deal");
     setValue("marketCapRate", "8.5");
     setValue("purchasePrice", "750000");
