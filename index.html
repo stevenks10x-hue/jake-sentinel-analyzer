@@ -86,7 +86,7 @@
         <div class="card">
           <h2>Core Inputs</h2>
           <div class="two">
-            <div><label>Deal Name</label><input id="dealName" value="My Deal" oninput="calc()"></div>
+            <div><label>Deal Name</label><input id="downAmt" type="number" placeholder="Down $" oninput="syncDownPaymentFromAmt()" /><input id="dealName" value="My Deal" oninput="calc()"></div>
             <div><label>Market Cap Rate %</label><input id="marketCapRate" type="number" value="8.5" oninput="calc()"></div>
 
             <div><label>Purchase Price</label><input id="purchasePrice" type="number" value="750000" oninput="calc()"></div>
@@ -94,7 +94,7 @@
 
             <div>
               <label>Down % <span id="downPctLabel"></span></label>
-              <input id="downPct" type="range" min="0" max="100" step="1" value="25" oninput="calc()">
+              <input id="downPct" oninput="syncDownPaymentFromPct()" type="range" min="0" max="100" step="1" value="25" oninput="calc()">
               <div class="helper" id="downHelper"></div>
             </div>
             <div><label>Amortization Years</label><input id="amortYears" type="number" value="25" oninput="calc()"></div>
@@ -284,38 +284,51 @@
     calc();
   }
 
+  function setValue(id, value) {
+    const el = $(id);
+    if (el) el.value = value;
+  }
+
+  function setChecked(id, value) {
+    const el = $(id);
+    if (el) el.checked = value;
+  }
+
   function clearInputs() {
-    $("dealName").value = "My Deal";
-    $("marketCapRate").value = "8.5";
-    $("purchasePrice").value = "750000";
-    $("offerPrice").value = "750000";
-    $("downPct").value = "25";
-    $("amortYears").value = "25";
-    $("primeRate").value = CURRENT_PRIME.toFixed(2);
-    $("spreadPct").value = "3.0";
-    $("feePct").value = "2.0";
-    $("feeFinanced").checked = true;
-    $("targetDscr").value = "1.25";
-    $("targetLtv").value = "65";
-    $("closingCosts").value = "25000";
-    $("capexReserve").value = "30000";
-    $("occupancyPct").value = "42";
-    $("nightlySites").value = "50";
-    $("operatingDays").value = "180";
-    $("nightlyRate").value = "52";
-    $("seasonalSites").value = "10";
-    $("seasonalMonthlyRate").value = "850";
-    $("seasonalMonths").value = "6";
-    $("annualSites").value = "0";
-    $("annualMonthlyRate").value = "0";
-    $("otherIncome").value = "10000";
-    $("expenseRatio").value = "45";
-    $("investorEquity").value = "100000";
-    $("sponsorEquity").value = "0";
-    $("prefReturnPct").value = "10";
-    $("investorSplitPct").value = "30";
-    $("holdYears").value = "5";
-    $("noiGrowthPct").value = "3";
+    setValue("dealName", "My Deal");
+    setValue("marketCapRate", "8.5");
+    setValue("purchasePrice", "750000");
+    setValue("offerPrice", "750000");
+    setValue("downPct", "25");
+    setValue("amortYears", "25");
+    setValue("primeRate", CURRENT_PRIME.toFixed(2));
+    setValue("spreadPct", "3.0");
+    setValue("feePct", "2.0");
+    setChecked("feeFinanced", true);
+    setValue("targetDscr", "1.25");
+    setValue("targetLtv", "65");
+    setValue("closingCosts", "25000");
+    setValue("capexReserve", "30000");
+    setValue("occupancyPct", "42");
+    setValue("nightlySites", "50");
+    setValue("operatingDays", "180");
+    setValue("nightlyRate", "52");
+    setValue("seasonalSites", "10");
+    setValue("seasonalMonthlyRate", "850");
+    setValue("seasonalMonths", "6");
+    setValue("annualSites", "0");
+    setValue("annualMonthlyRate", "0");
+    setValue("otherIncome", "10000");
+    setValue("expenseRatio", "45");
+    setValue("investorEquity", "100000");
+    setValue("sponsorEquity", "0");
+    setValue("prefReturnPct", "10");
+    setValue("investorSplitPct", "30");
+    setValue("holdYears", "5");
+    setValue("noiGrowthPct", "3");
+    clearSellerMessage();
+    clearInvestorMessage();
+    useCurrentPrime();
     calc();
   }
 
@@ -410,7 +423,23 @@
     };
   }
 
-  function calc() {
+  
+  function syncDownPaymentFromPct() {
+    const price = parseFloat($("offerPrice").value || 0);
+    const pct = parseFloat($("downPct").value || 0);
+    const amt = price * pct / 100;
+    if ($("downAmt")) $("downAmt").value = amt.toFixed(0);
+  }
+
+  function syncDownPaymentFromAmt() {
+    const price = parseFloat($("offerPrice").value || 0);
+    const amt = parseFloat($("downAmt").value || 0);
+    if (price > 0) {
+      $("downPct").value = ((amt / price) * 100).toFixed(2);
+    }
+  }
+
+function calc() {
     $("downPctLabel").textContent = nv("downPct") + "%";
     $("occupancyPctLabel").textContent = nv("occupancyPct") + "%";
     $("expenseRatioLabel").textContent = nv("expenseRatio") + "%";
