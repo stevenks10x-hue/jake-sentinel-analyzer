@@ -4,17 +4,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RV Park / Campground / MHP Calculator</title>
+  <title>Jake Sentinel Deal Analyzer v3</title>
   <style>
-    :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
-    * { box-sizing:border-box; }
-    body { margin:0; font-family:Arial, Helvetica, sans-serif; background:var(--bg); color:var(--text); }
-    .wrap { max-width:1200px; margin:0 auto; padding:16px; }
-    .card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:16px; margin-bottom:16px; }
-    h1,h2,p { margin:0; }
-    h1 { font-size:28px; margin-top:6px; }
-    h2 { font-size:18px; margin-bottom:12px; }
-    .muted { color:var(--muted); }
+    :root {
+      --bg: #f8fafc; --card: #fff; --text: #0f172a; --muted: #64748b;
+      --border: #e2e8f0; --good: #16a34a; --warn: #f59e0b; --bad: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 16px; }
+    h1,h2,p { margin: 0; }
+    h1 { font-size: 28px; margin-top: 6px; }
+    h2 { font-size: 18px; margin-bottom: 12px; }
+    .muted { color: var(--muted); }
     .topbar { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center; }
     .main { display:grid; grid-template-columns:1.1fr 0.9fr; gap:16px; }
     .two { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
@@ -38,6 +41,8 @@
     .hidden { display:none; }
     .summary-row { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #f1f5f9; }
     .summary-row:last-child { border-bottom:0; }
+    .helper { font-size:12px; color:var(--muted); margin-top:6px; }
+    .checkbox-row { display:flex; align-items:center; gap:10px; padding-top:24px; }
     @media (max-width: 900px) {
       .topbar, .main, .two, .metrics { grid-template-columns:1fr; }
       h1 { font-size:24px; }
@@ -54,8 +59,8 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>RV Park / Campground / MHP Calculator</h1>
-        <p class="muted" style="margin-top:8px;">Calculator first. Negotiation and investor outputs sit below it.</p>
+        <h1>Jake Sentinel Deal Analyzer v3</h1>
+        <p class="muted" style="margin-top:8px;">Calculator first. Financing is now split into prime, spread, and fee.</p>
       </div>
       <div class="btns noprint">
         <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV</button>
@@ -82,16 +87,37 @@
           <div class="two">
             <div><label>Deal Name</label><input id="dealName" value="My Deal" oninput="calc()"></div>
             <div><label>Market Cap Rate %</label><input id="marketCapRate" type="number" value="8.5" oninput="calc()"></div>
+
             <div><label>Purchase Price</label><input id="purchasePrice" type="number" value="750000" oninput="calc()"></div>
             <div><label>Offer Price</label><input id="offerPrice" type="number" value="750000" oninput="calc()"></div>
-            <div><label>Down % <span id="downPctLabel"></span></label><input id="downPct" type="range" min="0" max="100" step="1" value="25" oninput="calc()"></div>
-            <div><label>Interest Rate %</label><input id="interestRate" type="number" value="6.75" oninput="calc()"></div>
+
+            <div>
+              <label>Down % <span id="downPctLabel"></span></label>
+              <input id="downPct" type="range" min="0" max="100" step="1" value="25" oninput="calc()">
+              <div class="helper" id="downHelper"></div>
+            </div>
             <div><label>Amortization Years</label><input id="amortYears" type="number" value="25" oninput="calc()"></div>
+
+            <div><label>Prime Rate %</label><input id="primeRate" type="number" value="5.2" oninput="calc()"></div>
+            <div><label>Spread %</label><input id="spreadPct" type="number" value="3.0" oninput="calc()"></div>
+
+            <div><label>Financing Fee %</label><input id="feePct" type="number" value="2.0" oninput="calc()"></div>
+            <div class="checkbox-row">
+              <input id="feeFinanced" type="checkbox" checked onchange="calc()">
+              <label style="margin:0;color:#0f172a;">Fee financed into loan</label>
+            </div>
+
             <div><label>Target DSCR</label><input id="targetDscr" type="number" value="1.25" oninput="calc()"></div>
             <div><label>Target LTV %</label><input id="targetLtv" type="number" value="65" oninput="calc()"></div>
+
             <div><label>Closing Costs</label><input id="closingCosts" type="number" value="25000" oninput="calc()"></div>
             <div><label>Capex Reserve</label><input id="capexReserve" type="number" value="30000" oninput="calc()"></div>
-            <div><label>Occupancy % <span id="occupancyPctLabel"></span></label><input id="occupancyPct" type="range" min="0" max="100" step="1" value="42" oninput="calc()"></div>
+
+            <div>
+              <label>Occupancy % <span id="occupancyPctLabel"></span></label>
+              <input id="occupancyPct" type="range" min="0" max="100" step="1" value="42" oninput="calc()">
+            </div>
+            <div class="helper" id="financingHelper" style="align-self:end;"></div>
           </div>
         </div>
       </div>
@@ -116,8 +142,12 @@
 
       <div id="tab-debt" class="tab-panel hidden">
         <div class="metrics">
-          <div class="metric"><div class="l">Loan Amount</div><div class="v" id="loanAmount"></div></div>
-          <div class="metric"><div class="l">Down Payment</div><div class="v" id="downPayment"></div></div>
+          <div class="metric"><div class="l">Base Loan Amount</div><div class="v" id="baseLoanAmount"></div></div>
+          <div class="metric"><div class="l">Final Loan Amount</div><div class="v" id="loanAmount"></div><div class="s" id="loanAmountSub"></div></div>
+          <div class="metric"><div class="l">Down Payment</div><div class="v" id="downPayment"></div><div class="s" id="downPaymentSub"></div></div>
+          <div class="metric"><div class="l">Effective Rate</div><div class="v" id="effectiveRate"></div><div class="s" id="effectiveRateSub"></div></div>
+          <div class="metric"><div class="l">Financing Fee</div><div class="v" id="feeAmount"></div><div class="s" id="feeAmountSub"></div></div>
+          <div class="metric"><div class="l">Upfront Fee Cash</div><div class="v" id="upfrontFeeCash"></div></div>
           <div class="metric"><div class="l">Annual Debt Service</div><div class="v" id="annualDebt"></div><div class="s" id="monthlyDebt"></div></div>
           <div class="metric"><div class="l">Max Loan</div><div class="v" id="maxLoan"></div><div class="s">DSCR / LTV constrained</div></div>
           <div class="metric"><div class="l">Suggested Offer</div><div class="v" id="suggestedOffer"></div><div class="s">Based on target DSCR</div></div>
@@ -149,12 +179,18 @@
       <div id="tab-outputs" class="tab-panel hidden">
         <div class="card">
           <h2>Negotiation Generator</h2>
-          <div class="btns noprint"><button onclick="generateSellerMessage()">Generate Seller Message</button></div>
+          <div class="btns noprint">
+            <button onclick="generateSellerMessage()">Generate Seller Message</button>
+            <button onclick="clearSellerMessage()">Clear</button>
+          </div>
           <textarea id="sellerMessage" readonly></textarea>
         </div>
         <div class="card">
           <h2>Investor Output</h2>
-          <div class="btns noprint"><button onclick="generateInvestorMessage()">Generate Investor Summary</button></div>
+          <div class="btns noprint">
+            <button onclick="generateInvestorMessage()">Generate Investor Summary</button>
+            <button onclick="clearInvestorMessage()">Clear</button>
+          </div>
           <textarea id="investorMessage" readonly></textarea>
         </div>
       </div>
@@ -166,6 +202,9 @@
         <div class="summary-row"><span class="muted">Deal</span><strong id="sumDeal"></strong></div>
         <div class="summary-row"><span class="muted">Asset Type</span><strong id="sumAsset"></strong></div>
         <div class="summary-row"><span class="muted">Price</span><strong id="sumPrice"></strong></div>
+        <div class="summary-row"><span class="muted">Down Payment</span><strong id="sumDown"></strong></div>
+        <div class="summary-row"><span class="muted">Rate Structure</span><strong id="sumRate"></strong></div>
+        <div class="summary-row"><span class="muted">Fee</span><strong id="sumFee"></strong></div>
         <div class="summary-row"><span class="muted">NOI</span><strong id="sumNoi"></strong></div>
         <div class="summary-row"><span class="muted">DSCR</span><strong id="sumDscr"></strong></div>
         <div class="summary-row"><span class="muted">Signal</span><strong id="sumSignal"></strong></div>
@@ -223,8 +262,19 @@
   function getResults() {
     const price = nv("offerPrice") > 0 ? nv("offerPrice") : nv("purchasePrice");
     const down = price * (nv("downPct") / 100);
-    const loan = Math.max(0, price - down);
-    const annualDebt = monthlyPayment(loan, nv("interestRate"), nv("amortYears")) * 12;
+    const baseLoan = Math.max(0, price - down);
+
+    const primeRate = nv("primeRate");
+    const spreadPct = nv("spreadPct");
+    const feePct = nv("feePct");
+    const feeFinanced = $("feeFinanced").checked;
+
+    const effectiveRate = primeRate + spreadPct;
+    const feeAmount = baseLoan * (feePct / 100);
+    const loan = feeFinanced ? baseLoan + feeAmount : baseLoan;
+    const upfrontFeeCash = feeFinanced ? 0 : feeAmount;
+
+    const annualDebt = monthlyPayment(loan, effectiveRate, nv("amortYears")) * 12;
     const monthlyDebt = annualDebt / 12;
 
     const nightlyRevenue = nv("nightlySites") * nv("operatingDays") * (nv("occupancyPct") / 100) * nv("nightlyRate");
@@ -236,22 +286,31 @@
     const cashFlow = noi - annualDebt;
     const dscr = annualDebt > 0 ? noi / annualDebt : 0;
     const capRate = price > 0 ? noi / price : 0;
-    const cashOnCash = (down + nv("closingCosts") + nv("capexReserve")) > 0 ? cashFlow / (down + nv("closingCosts") + nv("capexReserve")) : 0;
+    const totalCashIn = down + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
+    const cashOnCash = totalCashIn > 0 ? cashFlow / totalCashIn : 0;
     const impliedValue = nv("marketCapRate") > 0 ? noi / (nv("marketCapRate") / 100) : 0;
+
     const maxAnnualDebt = nv("targetDscr") > 0 ? noi / nv("targetDscr") : 0;
-    const maxLoanByDscr = maxLoanFromMonthlyPayment(maxAnnualDebt / 12, nv("interestRate"), nv("amortYears"));
+    const maxLoanByDscr = maxLoanFromMonthlyPayment(maxAnnualDebt / 12, effectiveRate, nv("amortYears"));
     const maxLoanByLtv = price * (nv("targetLtv") / 100);
     const maxLoan = Math.min(maxLoanByDscr, maxLoanByLtv);
     const suggestedOffer = (1 - nv("downPct") / 100) > 0 ? maxLoanByDscr / (1 - nv("downPct") / 100) : price;
+
     const breakEvenRevenue = opex + annualDebt;
     const nightlyCapacityRevenue = nv("nightlySites") * nv("operatingDays") * Math.max(1, nv("nightlyRate"));
     const breakEvenOcc = nv("nightlySites") > 0 && nv("operatingDays") > 0 && nv("nightlyRate") > 0
       ? Math.max(0, Math.min(1.5, (breakEvenRevenue - seasonalRevenue - annualRevenue - nv("otherIncome")) / nightlyCapacityRevenue))
       : 0;
+
     let signal = { label: "STOP", cls: "stop" };
     if (dscr >= 1.4 && cashFlow > 0 && breakEvenOcc <= 0.55) signal = { label: "GO", cls: "go" };
     else if (dscr >= 1.2 && cashFlow >= 0 && breakEvenOcc <= 0.7) signal = { label: "YIELD", cls: "yield" };
-    return { price, down, loan, annualDebt, monthlyDebt, nightlyRevenue, seasonalRevenue, annualRevenue, egi, opex, noi, cashFlow, dscr, capRate, cashOnCash, impliedValue, maxLoan, suggestedOffer, breakEvenOcc, signal };
+
+    return {
+      price, down, baseLoan, loan, feeAmount, upfrontFeeCash, effectiveRate, primeRate, spreadPct, feePct, feeFinanced,
+      annualDebt, monthlyDebt, nightlyRevenue, seasonalRevenue, annualRevenue, egi, opex, noi, cashFlow, dscr,
+      capRate, cashOnCash, impliedValue, maxLoan, suggestedOffer, breakEvenOcc, signal
+    };
   }
 
   function calc() {
@@ -259,15 +318,29 @@
     $("occupancyPctLabel").textContent = nv("occupancyPct") + "%";
     $("expenseRatioLabel").textContent = nv("expenseRatio") + "%";
     const r = getResults();
+
+    $("downHelper").textContent = `${money(r.down)} (${nv("downPct")}% of ${money(r.price)})`;
+    $("financingHelper").textContent = `Effective rate ${r.effectiveRate.toFixed(2)}% = Prime ${r.primeRate.toFixed(2)}% + ${r.spreadPct.toFixed(2)}%`;
+
+    $("baseLoanAmount").textContent = money(r.baseLoan);
     $("loanAmount").textContent = money(r.loan);
+    $("loanAmountSub").textContent = r.feeFinanced ? `Includes fee of ${money(r.feeAmount)}` : `Fee not financed`;
     $("downPayment").textContent = money(r.down);
+    $("downPaymentSub").textContent = `${nv("downPct")}% down`;
+    $("effectiveRate").textContent = r.effectiveRate.toFixed(2) + "%";
+    $("effectiveRateSub").textContent = `Prime ${r.primeRate.toFixed(2)}% + Spread ${r.spreadPct.toFixed(2)}%`;
+    $("feeAmount").textContent = money(r.feeAmount);
+    $("feeAmountSub").textContent = `${r.feePct.toFixed(2)}% fee` + (r.feeFinanced ? " financed" : " paid in cash");
+    $("upfrontFeeCash").textContent = money(r.upfrontFeeCash);
     $("annualDebt").textContent = money(r.annualDebt);
     $("monthlyDebt").textContent = money(r.monthlyDebt) + " / month";
     $("maxLoan").textContent = money(r.maxLoan);
     $("suggestedOffer").textContent = money(r.suggestedOffer);
     $("breakEvenOcc").textContent = pct(r.breakEvenOcc);
+
     $("signalLabel").textContent = r.signal.label;
     $("signalDot").className = "dot " + r.signal.cls;
+
     $("egi").textContent = money(r.egi);
     $("opex").textContent = money(r.opex);
     $("noi").textContent = money(r.noi);
@@ -276,9 +349,13 @@
     $("capRate").textContent = pct(r.capRate);
     $("cashOnCash").textContent = pct(r.cashOnCash);
     $("impliedValue").textContent = money(r.impliedValue);
+
     $("sumDeal").textContent = $("dealName").value || "My Deal";
     $("sumAsset").textContent = assetType.toUpperCase();
     $("sumPrice").textContent = money(r.price);
+    $("sumDown").textContent = `${money(r.down)} (${nv("downPct")}%)`;
+    $("sumRate").textContent = `${r.primeRate.toFixed(2)}% + ${r.spreadPct.toFixed(2)}% = ${r.effectiveRate.toFixed(2)}%`;
+    $("sumFee").textContent = `${money(r.feeAmount)} (${r.feeFinanced ? "financed" : "cash"})`;
     $("sumNoi").textContent = money(r.noi);
     $("sumDscr").textContent = r.dscr.toFixed(2) + "x";
     $("sumSignal").textContent = r.signal.label;
@@ -291,49 +368,43 @@
   function generateSellerMessage() {
     const r = getResults();
     $("sellerMessage").value =
-      `Hi — after underwriting ${$("dealName").value || "this deal"}, here is where the deal lands:
-
-` +
-      `• Current price: ${money(r.price)}
-` +
-      `• Supported price: ${money(r.suggestedOffer)}
-` +
-      `• NOI: ${money(r.noi)}
-` +
-      `• DSCR: ${r.dscr.toFixed(2)}x
-
-` +
+      `Hi — after underwriting ${$("dealName").value || "this deal"}, here is where the deal lands:\n\n` +
+      `• Current price: ${money(r.price)}\n` +
+      `• Supported price: ${money(r.suggestedOffer)}\n` +
+      `• Down payment: ${money(r.down)} (${nv("downPct")}%)\n` +
+      `• Rate structure: Prime ${r.primeRate.toFixed(2)}% + ${r.spreadPct.toFixed(2)}% = ${r.effectiveRate.toFixed(2)}%\n` +
+      `• Financing fee: ${money(r.feeAmount)} (${r.feePct.toFixed(2)}% - ${r.feeFinanced ? "financed" : "cash"})\n` +
+      `• NOI: ${money(r.noi)}\n` +
+      `• DSCR: ${r.dscr.toFixed(2)}x\n\n` +
       `At the current price, the deal does not support our required coverage and risk thresholds. ` +
-      `To move forward, we would need pricing or terms that bring the deal closer to ${money(r.suggestedOffer)}.
-
-` +
+      `To move forward, we would need pricing or terms that bring the deal closer to ${money(r.suggestedOffer)}.\n\n` +
       `We are serious, but we need to stay aligned with sustainable operating performance and lender requirements.`;
   }
 
   function generateInvestorMessage() {
     const r = getResults();
     $("investorMessage").value =
-      `Deal Summary: ${$("dealName").value || "My Deal"}
-
-` +
-      `• Asset type: ${assetType.toUpperCase()}
-` +
-      `• Purchase / offer: ${money(r.price)}
-` +
-      `• Effective gross income: ${money(r.egi)}
-` +
-      `• NOI: ${money(r.noi)}
-` +
-      `• Cash flow: ${money(r.cashFlow)}
-` +
-      `• DSCR: ${r.dscr.toFixed(2)}x
-` +
-      `• Cap rate: ${pct(r.capRate)}
-` +
-      `• Signal: ${r.signal.label}
-
-` +
+      `Deal Summary: ${$("dealName").value || "My Deal"}\n\n` +
+      `• Asset type: ${assetType.toUpperCase()}\n` +
+      `• Purchase / offer: ${money(r.price)}\n` +
+      `• Down payment: ${money(r.down)} (${nv("downPct")}%)\n` +
+      `• Rate structure: Prime ${r.primeRate.toFixed(2)}% + ${r.spreadPct.toFixed(2)}% = ${r.effectiveRate.toFixed(2)}%\n` +
+      `• Financing fee: ${money(r.feeAmount)} (${r.feePct.toFixed(2)}% - ${r.feeFinanced ? "financed" : "cash"})\n` +
+      `• Effective gross income: ${money(r.egi)}\n` +
+      `• NOI: ${money(r.noi)}\n` +
+      `• Cash flow: ${money(r.cashFlow)}\n` +
+      `• DSCR: ${r.dscr.toFixed(2)}x\n` +
+      `• Cap rate: ${pct(r.capRate)}\n` +
+      `• Signal: ${r.signal.label}\n\n` +
       `This is a quick investor summary based on the current underwriting assumptions.`;
+  }
+
+  function clearSellerMessage() {
+    $("sellerMessage").value = "";
+  }
+
+  function clearInvestorMessage() {
+    $("investorMessage").value = "";
   }
 
   showTab("inputs");
