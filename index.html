@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jake Sentinel Deal Analyzer v3</title>
+  <title>Jake Sentinel Deal Analyzer v5</title>
   <style>
     :root {
       --bg: #f8fafc; --card: #fff; --text: #0f172a; --muted: #64748b;
@@ -59,8 +59,8 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>Jake Sentinel Deal Analyzer v3</h1>
-        <p class="muted" style="margin-top:8px;">Calculator first. Financing is now split into prime, spread, and fee.</p>
+        <h1>Jake Sentinel Deal Analyzer v5</h1>
+        <p class="muted" style="margin-top:8px;">Now includes an investor section with capital stack, pref, split, hold period, and investor summary.</p>
       </div>
       <div class="btns noprint">
         <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV</button>
@@ -76,6 +76,7 @@
     <button class="tab" data-tab="revenue" onclick="showTab('revenue')">Revenue</button>
     <button class="tab" data-tab="debt" onclick="showTab('debt')">Debt</button>
     <button class="tab" data-tab="results" onclick="showTab('results')">Results</button>
+    <button class="tab" data-tab="investor" onclick="showTab('investor')">Investor</button>
     <button class="tab" data-tab="outputs" onclick="showTab('outputs')">Outputs</button>
   </div>
 
@@ -98,7 +99,7 @@
             </div>
             <div><label>Amortization Years</label><input id="amortYears" type="number" value="25" oninput="calc()"></div>
 
-            <div><label>Prime Rate %</label><input id="primeRate" type="number" value="5.2" oninput="calc()"></div>
+            <div><label>Prime Rate %</label><input id="primeRate" type="number" value="4.45" oninput="calc()"></div>
             <div><label>Spread %</label><input id="spreadPct" type="number" value="3.0" oninput="calc()"></div>
 
             <div><label>Financing Fee %</label><input id="feePct" type="number" value="2.0" oninput="calc()"></div>
@@ -107,17 +108,25 @@
               <label style="margin:0;color:#0f172a;">Fee financed into loan</label>
             </div>
 
+            <div class="btns noprint">
+              <button onclick="useCurrentPrime()">Use Current Prime</button>
+              <div class="helper" id="primeUpdated">Current Canadian prime preset: 4.45% (April 7, 2026)</div>
+            </div>
             <div><label>Target DSCR</label><input id="targetDscr" type="number" value="1.25" oninput="calc()"></div>
+
             <div><label>Target LTV %</label><input id="targetLtv" type="number" value="65" oninput="calc()"></div>
-
             <div><label>Closing Costs</label><input id="closingCosts" type="number" value="25000" oninput="calc()"></div>
-            <div><label>Capex Reserve</label><input id="capexReserve" type="number" value="30000" oninput="calc()"></div>
 
+            <div><label>Capex Reserve</label><input id="capexReserve" type="number" value="30000" oninput="calc()"></div>
             <div>
               <label>Occupancy % <span id="occupancyPctLabel"></span></label>
               <input id="occupancyPct" type="range" min="0" max="100" step="1" value="42" oninput="calc()">
             </div>
-            <div class="helper" id="financingHelper" style="align-self:end;"></div>
+
+            <div class="btns noprint">
+              <button onclick="clearInputs()">Clear Inputs</button>
+              <div class="helper" id="financingHelper"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -160,7 +169,7 @@
           <div>
             <div class="muted">Deal Signal</div>
             <div style="font-size:28px;font-weight:700;margin-top:4px" id="signalLabel"></div>
-            <div class="muted" style="font-size:12px;">Based on DSCR, cash flow, and break-even risk</div>
+            <div class="muted" style="font-size:12px;" id="signalWhy">Based on DSCR, cash flow, and break-even risk</div>
           </div>
           <div id="signalDot" class="dot stop"></div>
         </div>
@@ -173,6 +182,30 @@
           <div class="metric"><div class="l">Cap Rate</div><div class="v" id="capRate"></div></div>
           <div class="metric"><div class="l">Cash on Cash</div><div class="v" id="cashOnCash"></div></div>
           <div class="metric"><div class="l">Implied Value</div><div class="v" id="impliedValue"></div></div>
+        </div>
+      </div>
+
+      <div id="tab-investor" class="tab-panel hidden">
+        <div class="card">
+          <h2>Investor Inputs</h2>
+          <div class="two">
+            <div><label>Investor Equity</label><input id="investorEquity" type="number" value="100000" oninput="calc()"></div>
+            <div><label>Sponsor Equity</label><input id="sponsorEquity" type="number" value="0" oninput="calc()"></div>
+            <div><label>Preferred Return %</label><input id="prefReturnPct" type="number" value="10" oninput="calc()"></div>
+            <div><label>Profit Split to Investor % (after pref)</label><input id="investorSplitPct" type="number" value="30" oninput="calc()"></div>
+            <div><label>Hold Period (years)</label><input id="holdYears" type="number" value="5" oninput="calc()"></div>
+            <div><label>Annual NOI Growth %</label><input id="noiGrowthPct" type="number" value="3" oninput="calc()"></div>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="l">Total Project Cost</div><div class="v" id="totalProjectCost"></div></div>
+          <div class="metric"><div class="l">Total Equity Required</div><div class="v" id="totalEquityRequired"></div></div>
+          <div class="metric"><div class="l">Investor Annual Pref</div><div class="v" id="investorAnnualPref"></div></div>
+          <div class="metric"><div class="l">Projected Investor Profit Share</div><div class="v" id="investorProfitShare"></div></div>
+          <div class="metric"><div class="l">Projected Sponsor Profit Share</div><div class="v" id="sponsorProfitShare"></div></div>
+          <div class="metric"><div class="l">Investor Total Distributions</div><div class="v" id="investorTotalDists"></div></div>
+          <div class="metric"><div class="l">Investor Equity Multiple</div><div class="v" id="investorEquityMultiple"></div></div>
+          <div class="metric"><div class="l">Projected Stabilized NOI</div><div class="v" id="futureNoi"></div></div>
         </div>
       </div>
 
@@ -219,6 +252,8 @@
 
 <script>
   let assetType = "rv";
+  const CURRENT_PRIME = 4.45;
+  const CURRENT_PRIME_DATE = "April 7, 2026";
   const $ = (id) => document.getElementById(id);
   const nv = (id) => Number($(id).value) || 0;
 
@@ -241,6 +276,47 @@
     document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
     document.querySelectorAll(".tab-panel").forEach((el) => el.classList.add("hidden"));
     $("tab-" + tab).classList.remove("hidden");
+  }
+
+  function useCurrentPrime() {
+    $("primeRate").value = CURRENT_PRIME.toFixed(2);
+    $("primeUpdated").textContent = `Current Canadian prime preset: ${CURRENT_PRIME.toFixed(2)}% (${CURRENT_PRIME_DATE})`;
+    calc();
+  }
+
+  function clearInputs() {
+    $("dealName").value = "My Deal";
+    $("marketCapRate").value = "8.5";
+    $("purchasePrice").value = "750000";
+    $("offerPrice").value = "750000";
+    $("downPct").value = "25";
+    $("amortYears").value = "25";
+    $("primeRate").value = CURRENT_PRIME.toFixed(2);
+    $("spreadPct").value = "3.0";
+    $("feePct").value = "2.0";
+    $("feeFinanced").checked = true;
+    $("targetDscr").value = "1.25";
+    $("targetLtv").value = "65";
+    $("closingCosts").value = "25000";
+    $("capexReserve").value = "30000";
+    $("occupancyPct").value = "42";
+    $("nightlySites").value = "50";
+    $("operatingDays").value = "180";
+    $("nightlyRate").value = "52";
+    $("seasonalSites").value = "10";
+    $("seasonalMonthlyRate").value = "850";
+    $("seasonalMonths").value = "6";
+    $("annualSites").value = "0";
+    $("annualMonthlyRate").value = "0";
+    $("otherIncome").value = "10000";
+    $("expenseRatio").value = "45";
+    $("investorEquity").value = "100000";
+    $("sponsorEquity").value = "0";
+    $("prefReturnPct").value = "10";
+    $("investorSplitPct").value = "30";
+    $("holdYears").value = "5";
+    $("noiGrowthPct").value = "3";
+    calc();
   }
 
   function setAsset(type) {
@@ -302,14 +378,35 @@
       ? Math.max(0, Math.min(1.5, (breakEvenRevenue - seasonalRevenue - annualRevenue - nv("otherIncome")) / nightlyCapacityRevenue))
       : 0;
 
-    let signal = { label: "STOP", cls: "stop" };
-    if (dscr >= 1.4 && cashFlow > 0 && breakEvenOcc <= 0.55) signal = { label: "GO", cls: "go" };
-    else if (dscr >= 1.2 && cashFlow >= 0 && breakEvenOcc <= 0.7) signal = { label: "YIELD", cls: "yield" };
+    let signal = { label: "STOP", cls: "stop", why: "Tight coverage or fragile operating assumptions." };
+    if (dscr >= 1.4 && cashFlow > 0 && breakEvenOcc <= 0.55) signal = { label: "GO", cls: "go", why: "Strong coverage, positive cash flow, and healthy occupancy buffer." };
+    else if (dscr >= 1.2 && cashFlow >= 0 && breakEvenOcc <= 0.7) signal = { label: "YIELD", cls: "yield", why: "Workable deal, but margins are tighter and need active management." };
+
+    const totalProjectCost = price + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
+    const totalEquityRequired = down + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
+    const investorEquity = nv("investorEquity");
+    const sponsorEquity = nv("sponsorEquity");
+    const prefReturnPct = nv("prefReturnPct");
+    const investorSplitPct = nv("investorSplitPct");
+    const holdYears = nv("holdYears");
+    const noiGrowthPct = nv("noiGrowthPct");
+
+    const futureNoi = noi * Math.pow(1 + noiGrowthPct / 100, holdYears);
+    const totalProjectedCashFlow = Math.max(0, cashFlow) * holdYears;
+    const investorAnnualPref = investorEquity * (prefReturnPct / 100);
+    const totalInvestorPref = investorAnnualPref * holdYears;
+    const residualAfterPref = Math.max(0, totalProjectedCashFlow - totalInvestorPref);
+    const investorProfitShare = residualAfterPref * (investorSplitPct / 100);
+    const sponsorProfitShare = residualAfterPref - investorProfitShare;
+    const investorTotalDists = totalInvestorPref + investorProfitShare;
+    const investorEquityMultiple = investorEquity > 0 ? investorTotalDists / investorEquity : 0;
 
     return {
       price, down, baseLoan, loan, feeAmount, upfrontFeeCash, effectiveRate, primeRate, spreadPct, feePct, feeFinanced,
       annualDebt, monthlyDebt, nightlyRevenue, seasonalRevenue, annualRevenue, egi, opex, noi, cashFlow, dscr,
-      capRate, cashOnCash, impliedValue, maxLoan, suggestedOffer, breakEvenOcc, signal
+      capRate, cashOnCash, impliedValue, maxLoan, suggestedOffer, breakEvenOcc, signal,
+      totalProjectCost, totalEquityRequired, investorEquity, sponsorEquity, prefReturnPct, investorSplitPct, holdYears,
+      noiGrowthPct, futureNoi, investorAnnualPref, investorProfitShare, sponsorProfitShare, investorTotalDists, investorEquityMultiple
     };
   }
 
@@ -340,6 +437,7 @@
 
     $("signalLabel").textContent = r.signal.label;
     $("signalDot").className = "dot " + r.signal.cls;
+    $("signalWhy").textContent = r.signal.why;
 
     $("egi").textContent = money(r.egi);
     $("opex").textContent = money(r.opex);
@@ -349,6 +447,15 @@
     $("capRate").textContent = pct(r.capRate);
     $("cashOnCash").textContent = pct(r.cashOnCash);
     $("impliedValue").textContent = money(r.impliedValue);
+
+    $("totalProjectCost").textContent = money(r.totalProjectCost);
+    $("totalEquityRequired").textContent = money(r.totalEquityRequired);
+    $("investorAnnualPref").textContent = money(r.investorAnnualPref);
+    $("investorProfitShare").textContent = money(r.investorProfitShare);
+    $("sponsorProfitShare").textContent = money(r.sponsorProfitShare);
+    $("investorTotalDists").textContent = money(r.investorTotalDists);
+    $("investorEquityMultiple").textContent = r.investorEquityMultiple.toFixed(2) + "x";
+    $("futureNoi").textContent = money(r.futureNoi);
 
     $("sumDeal").textContent = $("dealName").value || "My Deal";
     $("sumAsset").textContent = assetType.toUpperCase();
@@ -384,30 +491,30 @@
   function generateInvestorMessage() {
     const r = getResults();
     $("investorMessage").value =
-      `Deal Summary: ${$("dealName").value || "My Deal"}\n\n` +
+      `Investor Summary: ${$("dealName").value || "My Deal"}\n\n` +
       `• Asset type: ${assetType.toUpperCase()}\n` +
       `• Purchase / offer: ${money(r.price)}\n` +
-      `• Down payment: ${money(r.down)} (${nv("downPct")}%)\n` +
-      `• Rate structure: Prime ${r.primeRate.toFixed(2)}% + ${r.spreadPct.toFixed(2)}% = ${r.effectiveRate.toFixed(2)}%\n` +
-      `• Financing fee: ${money(r.feeAmount)} (${r.feePct.toFixed(2)}% - ${r.feeFinanced ? "financed" : "cash"})\n` +
-      `• Effective gross income: ${money(r.egi)}\n` +
-      `• NOI: ${money(r.noi)}\n` +
-      `• Cash flow: ${money(r.cashFlow)}\n` +
+      `• Total project cost: ${money(r.totalProjectCost)}\n` +
+      `• Total equity required: ${money(r.totalEquityRequired)}\n` +
+      `• Investor equity: ${money(r.investorEquity)}\n` +
+      `• Sponsor equity: ${money(r.sponsorEquity)}\n` +
+      `• Annual pref: ${money(r.investorAnnualPref)} (${r.prefReturnPct.toFixed(2)}%)\n` +
+      `• Profit split to investor after pref: ${r.investorSplitPct.toFixed(2)}%\n` +
+      `• Hold period: ${r.holdYears} years\n` +
+      `• NOI today: ${money(r.noi)}\n` +
+      `• Stabilized NOI projection: ${money(r.futureNoi)}\n` +
       `• DSCR: ${r.dscr.toFixed(2)}x\n` +
-      `• Cap rate: ${pct(r.capRate)}\n` +
-      `• Signal: ${r.signal.label}\n\n` +
-      `This is a quick investor summary based on the current underwriting assumptions.`;
+      `• Signal: ${r.signal.label}\n` +
+      `• Investor total distributions: ${money(r.investorTotalDists)}\n` +
+      `• Investor equity multiple: ${r.investorEquityMultiple.toFixed(2)}x\n\n` +
+      `This is a simplified investor summary based on the current underwriting assumptions.`;
   }
 
-  function clearSellerMessage() {
-    $("sellerMessage").value = "";
-  }
-
-  function clearInvestorMessage() {
-    $("investorMessage").value = "";
-  }
+  function clearSellerMessage() { $("sellerMessage").value = ""; }
+  function clearInvestorMessage() { $("investorMessage").value = ""; }
 
   showTab("inputs");
+  useCurrentPrime();
   calc();
 </script>
 </body>
