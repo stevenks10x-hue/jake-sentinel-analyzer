@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jake Sentinel Deal Analyzer v5</title>
+  <title>Jake Sentinel Deal Analyzer v7</title>
   <style>
     :root {
       --bg: #f8fafc; --card: #fff; --text: #0f172a; --muted: #64748b;
@@ -59,13 +59,14 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>Jake Sentinel Deal Analyzer v5</h1>
-        <p class="muted" style="margin-top:8px;">Now includes an investor section with capital stack, pref, split, hold period, and investor summary.</p>
+        <h1>Jake Sentinel Deal Analyzer v7</h1>
+        <p class="muted" style="margin-top:8px;">Now includes Multi-Family as a preset with dedicated rent and vacancy inputs.</p>
       </div>
       <div class="btns noprint">
-        <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV</button> <button onclick="clearAllInputs()">Clear All (Zero)</button>
+        <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV</button>
         <button class="asset" id="asset-campground" onclick="setAsset('campground')">Campground</button>
         <button class="asset" id="asset-mhp" onclick="setAsset('mhp')">MHP</button>
+        <button class="asset" id="asset-multifamily" onclick="setAsset('multifamily')">Multi-Family</button>
         <button class="primary" onclick="window.print()">Print</button>
       </div>
     </div>
@@ -101,34 +102,31 @@
               <label>Down Payment $</label>
               <input id="downAmt" type="number" value="187500" oninput="syncDownPaymentFromAmt(); calc()">
             </div>
+
             <div><label>Amortization Years</label><input id="amortYears" type="number" value="25" oninput="calc()"></div>
-
             <div><label>Prime Rate %</label><input id="primeRate" type="number" value="4.45" oninput="calc()"></div>
-            <div><label>Spread %</label><input id="spreadPct" type="number" value="3.0" oninput="calc()"></div>
 
+            <div><label>Spread %</label><input id="spreadPct" type="number" value="3.0" oninput="calc()"></div>
             <div><label>Financing Fee %</label><input id="feePct" type="number" value="2.0" oninput="calc()"></div>
+
             <div class="checkbox-row">
               <input id="feeFinanced" type="checkbox" checked onchange="calc()">
               <label style="margin:0;color:#0f172a;">Fee financed into loan</label>
             </div>
-
             <div class="btns noprint">
               <button onclick="useCurrentPrime()">Use Current Prime</button>
               <div class="helper" id="primeUpdated">Current Canadian prime preset: 4.45% (April 7, 2026)</div>
             </div>
+
             <div><label>Target DSCR</label><input id="targetDscr" type="number" value="1.25" oninput="calc()"></div>
-
             <div><label>Target LTV %</label><input id="targetLtv" type="number" value="65" oninput="calc()"></div>
-            <div><label>Closing Costs</label><input id="closingCosts" type="number" value="25000" oninput="calc()"></div>
 
+            <div><label>Closing Costs</label><input id="closingCosts" type="number" value="25000" oninput="calc()"></div>
             <div><label>Capex Reserve</label><input id="capexReserve" type="number" value="30000" oninput="calc()"></div>
-            <div>
-              <label>Occupancy % <span id="occupancyPctLabel"></span></label>
-              <input id="occupancyPct" type="range" min="0" max="100" step="1" value="42" oninput="calc()">
-            </div>
 
             <div class="btns noprint">
               <button onclick="clearInputs()">Reset to Defaults</button>
+              <button onclick="clearAllInputs()">Clear All (Zero)</button>
               <div class="helper" id="financingHelper"></div>
             </div>
           </div>
@@ -138,7 +136,12 @@
       <div id="tab-revenue" class="tab-panel hidden">
         <div class="card">
           <h2>Revenue Inputs</h2>
-          <div class="two">
+
+          <div id="hospitalityRevenue" class="two">
+            <div>
+              <label>Occupancy % <span id="occupancyPctLabel"></span></label>
+              <input id="occupancyPct" type="range" min="0" max="100" step="1" value="42" oninput="calc()">
+            </div>
             <div><label>Nightly Sites</label><input id="nightlySites" type="number" value="50" oninput="calc()"></div>
             <div><label>Operating Days</label><input id="operatingDays" type="number" value="180" oninput="calc()"></div>
             <div><label>Nightly Rate</label><input id="nightlyRate" type="number" value="52" oninput="calc()"></div>
@@ -149,6 +152,15 @@
             <div><label>Annual Monthly Rate</label><input id="annualMonthlyRate" type="number" value="0" oninput="calc()"></div>
             <div><label>Other Income</label><input id="otherIncome" type="number" value="10000" oninput="calc()"></div>
             <div><label>Expense Ratio % <span id="expenseRatioLabel"></span></label><input id="expenseRatio" type="range" min="10" max="80" step="1" value="45" oninput="calc()"></div>
+          </div>
+
+          <div id="multifamilyRevenue" class="two hidden">
+            <div><label>Unit Count</label><input id="unitCount" type="number" value="12" oninput="calc()"></div>
+            <div><label>Average Monthly Rent</label><input id="avgMonthlyRent" type="number" value="1450" oninput="calc()"></div>
+            <div><label>Economic Vacancy %</label><input id="vacancyPct" type="number" value="5" oninput="calc()"></div>
+            <div><label>Other Income (annual)</label><input id="mfOtherIncome" type="number" value="6000" oninput="calc()"></div>
+            <div><label>Expense Ratio %</label><input id="mfExpenseRatio" type="number" value="40" oninput="calc()"></div>
+            <div class="helper" id="mfHelper" style="align-self:end;">Multi-family mode swaps nightly/site logic for rent + vacancy logic.</div>
           </div>
         </div>
       </div>
@@ -164,7 +176,7 @@
           <div class="metric"><div class="l">Annual Debt Service</div><div class="v" id="annualDebt"></div><div class="s" id="monthlyDebt"></div></div>
           <div class="metric"><div class="l">Max Loan</div><div class="v" id="maxLoan"></div><div class="s">DSCR / LTV constrained</div></div>
           <div class="metric"><div class="l">Suggested Offer</div><div class="v" id="suggestedOffer"></div><div class="s">Based on target DSCR</div></div>
-          <div class="metric"><div class="l">Break-even Occupancy</div><div class="v" id="breakEvenOcc"></div></div>
+          <div class="metric"><div class="l">Break-even Occupancy / Vacancy</div><div class="v" id="breakEvenOcc"></div></div>
         </div>
       </div>
 
@@ -245,8 +257,8 @@
         <div class="summary-row"><span class="muted">NOI</span><strong id="sumNoi"></strong></div>
         <div class="summary-row"><span class="muted">DSCR</span><strong id="sumDscr"></strong></div>
         <div class="summary-row"><span class="muted">Signal</span><strong id="sumSignal"></strong></div>
-        <div class="summary-row"><span class="muted">Nightly Revenue</span><strong id="sumNightly"></strong></div>
-        <div class="summary-row"><span class="muted">Seasonal Revenue</span><strong id="sumSeasonal"></strong></div>
+        <div class="summary-row"><span class="muted">Primary Revenue</span><strong id="sumNightly"></strong></div>
+        <div class="summary-row"><span class="muted">Secondary Revenue</span><strong id="sumSeasonal"></strong></div>
         <div class="summary-row"><span class="muted">Annual Revenue</span><strong id="sumAnnual"></strong></div>
         <div class="summary-row"><span class="muted">Other Income</span><strong id="sumOther"></strong></div>
       </div>
@@ -275,27 +287,13 @@
     if (r === 0) return maxMonthlyPayment * m;
     return maxMonthlyPayment * ((1 - Math.pow(1 + r, -m)) / r);
   }
+  function setValue(id, value) { const el = $(id); if (el) el.value = value; }
+  function setChecked(id, value) { const el = $(id); if (el) el.checked = value; }
 
   function showTab(tab) {
     document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
     document.querySelectorAll(".tab-panel").forEach((el) => el.classList.add("hidden"));
     $("tab-" + tab).classList.remove("hidden");
-  }
-
-  function useCurrentPrime() {
-    $("primeRate").value = CURRENT_PRIME.toFixed(2);
-    $("primeUpdated").textContent = `Current Canadian prime preset: ${CURRENT_PRIME.toFixed(2)}% (${CURRENT_PRIME_DATE})`;
-    calc();
-  }
-
-  function setValue(id, value) {
-    const el = $(id);
-    if (el) el.value = value;
-  }
-
-  function setChecked(id, value) {
-    const el = $(id);
-    if (el) el.checked = value;
   }
 
   function syncDownPaymentFromPct() {
@@ -311,29 +309,32 @@
     if (price > 0 && $("downPct")) $("downPct").value = ((amt / price) * 100).toFixed(2);
   }
 
-  
-function clearAllInputs() {
-  const ids = [
-    "dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears",
-    "primeRate","spreadPct","feePct","targetDscr","targetLtv","closingCosts",
-    "capexReserve","occupancyPct","nightlySites","operatingDays","nightlyRate",
-    "seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites",
-    "annualMonthlyRate","otherIncome","expenseRatio","investorEquity",
-    "sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct"
-  ];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (el.type === "checkbox") el.checked = false;
-    else el.value = 0;
-  });
-  if (document.getElementById("feeFinanced")) document.getElementById("feeFinanced").checked = false;
-  clearSellerMessage();
-  clearInvestorMessage();
-  calc();
-}
+  function useCurrentPrime() {
+    $("primeRate").value = CURRENT_PRIME.toFixed(2);
+    $("primeUpdated").textContent = `Current Canadian prime preset: ${CURRENT_PRIME.toFixed(2)}% (${CURRENT_PRIME_DATE})`;
+    calc();
+  }
 
-function clearInputs() {
+  function clearAllInputs() {
+    [
+      "dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears","primeRate","spreadPct","feePct","targetDscr","targetLtv","closingCosts",
+      "capexReserve","occupancyPct","nightlySites","operatingDays","nightlyRate","seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites",
+      "annualMonthlyRate","otherIncome","expenseRatio","investorEquity","sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct",
+      "unitCount","avgMonthlyRent","vacancyPct","mfOtherIncome","mfExpenseRatio","marketCapRate"
+    ].forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      if (el.type === "checkbox") el.checked = false;
+      else if (id === "dealName") el.value = "";
+      else el.value = 0;
+    });
+    setChecked("feeFinanced", false);
+    clearSellerMessage();
+    clearInvestorMessage();
+    calc();
+  }
+
+  function clearInputs() {
     setValue("dealName", "My Deal");
     setValue("marketCapRate", "8.5");
     setValue("purchasePrice", "750000");
@@ -366,24 +367,35 @@ function clearInputs() {
     setValue("investorSplitPct", "30");
     setValue("holdYears", "5");
     setValue("noiGrowthPct", "3");
+    setValue("unitCount", "12");
+    setValue("avgMonthlyRent", "1450");
+    setValue("vacancyPct", "5");
+    setValue("mfOtherIncome", "6000");
+    setValue("mfExpenseRatio", "40");
     clearSellerMessage();
     clearInvestorMessage();
     useCurrentPrime();
+    setAsset(assetType);
     calc();
   }
 
   function setAsset(type) {
     assetType = type;
-    ["rv","campground","mhp"].forEach((t) => $("asset-" + t).classList.toggle("active", t === type));
+    ["rv","campground","mhp","multifamily"].forEach((t) => $("asset-" + t).classList.toggle("active", t === type));
+    $("hospitalityRevenue").classList.toggle("hidden", type === "multifamily");
+    $("multifamilyRevenue").classList.toggle("hidden", type !== "multifamily");
+
     if (type === "rv") {
-      $("nightlySites").value = 50; $("operatingDays").value = 180; $("nightlyRate").value = 52; $("occupancyPct").value = 42;
-      $("seasonalSites").value = 10; $("seasonalMonthlyRate").value = 850; $("seasonalMonths").value = 6; $("annualSites").value = 0; $("annualMonthlyRate").value = 0; $("otherIncome").value = 10000; $("expenseRatio").value = 45;
+      setValue("nightlySites", 50); setValue("operatingDays", 180); setValue("nightlyRate", 52); setValue("occupancyPct", 42);
+      setValue("seasonalSites", 10); setValue("seasonalMonthlyRate", 850); setValue("seasonalMonths", 6); setValue("annualSites", 0); setValue("annualMonthlyRate", 0); setValue("otherIncome", 10000); setValue("expenseRatio", 45);
     } else if (type === "campground") {
-      $("nightlySites").value = 65; $("operatingDays").value = 140; $("nightlyRate").value = 45; $("occupancyPct").value = 38;
-      $("seasonalSites").value = 15; $("seasonalMonthlyRate").value = 700; $("seasonalMonths").value = 5; $("annualSites").value = 0; $("annualMonthlyRate").value = 0; $("otherIncome").value = 8000; $("expenseRatio").value = 48;
-    } else {
-      $("nightlySites").value = 0; $("operatingDays").value = 365; $("nightlyRate").value = 0; $("occupancyPct").value = 0;
-      $("seasonalSites").value = 0; $("seasonalMonthlyRate").value = 0; $("seasonalMonths").value = 0; $("annualSites").value = 40; $("annualMonthlyRate").value = 625; $("otherIncome").value = 5000; $("expenseRatio").value = 35;
+      setValue("nightlySites", 65); setValue("operatingDays", 140); setValue("nightlyRate", 45); setValue("occupancyPct", 38);
+      setValue("seasonalSites", 15); setValue("seasonalMonthlyRate", 700); setValue("seasonalMonths", 5); setValue("annualSites", 0); setValue("annualMonthlyRate", 0); setValue("otherIncome", 8000); setValue("expenseRatio", 48);
+    } else if (type === "mhp") {
+      setValue("nightlySites", 0); setValue("operatingDays", 365); setValue("nightlyRate", 0); setValue("occupancyPct", 0);
+      setValue("seasonalSites", 0); setValue("seasonalMonthlyRate", 0); setValue("seasonalMonths", 0); setValue("annualSites", 40); setValue("annualMonthlyRate", 625); setValue("otherIncome", 5000); setValue("expenseRatio", 35);
+    } else if (type === "multifamily") {
+      setValue("unitCount", 12); setValue("avgMonthlyRent", 1450); setValue("vacancyPct", 5); setValue("mfOtherIncome", 6000); setValue("mfExpenseRatio", 40);
     }
     calc();
   }
@@ -406,11 +418,30 @@ function clearInputs() {
     const annualDebt = monthlyPayment(loan, effectiveRate, nv("amortYears")) * 12;
     const monthlyDebt = annualDebt / 12;
 
-    const nightlyRevenue = nv("nightlySites") * nv("operatingDays") * (nv("occupancyPct") / 100) * nv("nightlyRate");
-    const seasonalRevenue = nv("seasonalSites") * nv("seasonalMonthlyRate") * nv("seasonalMonths");
-    const annualRevenue = nv("annualSites") * nv("annualMonthlyRate") * 12;
-    const egi = nightlyRevenue + seasonalRevenue + annualRevenue + nv("otherIncome");
-    const opex = egi * (nv("expenseRatio") / 100);
+    let nightlyRevenue = 0, seasonalRevenue = 0, annualRevenue = 0, egi = 0, opex = 0, breakEvenMetric = 0;
+
+    if (assetType === "multifamily") {
+      const grossRent = nv("unitCount") * nv("avgMonthlyRent") * 12;
+      const vacancyLoss = grossRent * (nv("vacancyPct") / 100);
+      const otherIncome = nv("mfOtherIncome");
+      egi = grossRent - vacancyLoss + otherIncome;
+      opex = egi * (nv("mfExpenseRatio") / 100);
+      nightlyRevenue = grossRent;
+      seasonalRevenue = -vacancyLoss;
+      annualRevenue = 0;
+      breakEvenMetric = egi > 0 ? Math.max(0, Math.min(1.5, (opex + annualDebt) / (grossRent + otherIncome))) : 0;
+    } else {
+      nightlyRevenue = nv("nightlySites") * nv("operatingDays") * (nv("occupancyPct") / 100) * nv("nightlyRate");
+      seasonalRevenue = nv("seasonalSites") * nv("seasonalMonthlyRate") * nv("seasonalMonths");
+      annualRevenue = nv("annualSites") * nv("annualMonthlyRate") * 12;
+      egi = nightlyRevenue + seasonalRevenue + annualRevenue + nv("otherIncome");
+      opex = egi * (nv("expenseRatio") / 100);
+      const nightlyCapacityRevenue = nv("nightlySites") * nv("operatingDays") * Math.max(1, nv("nightlyRate"));
+      breakEvenMetric = nv("nightlySites") > 0 && nv("operatingDays") > 0 && nv("nightlyRate") > 0
+        ? Math.max(0, Math.min(1.5, (opex + annualDebt - seasonalRevenue - annualRevenue - nv("otherIncome")) / nightlyCapacityRevenue))
+        : 0;
+    }
+
     const noi = egi - opex;
     const cashFlow = noi - annualDebt;
     const dscr = annualDebt > 0 ? noi / annualDebt : 0;
@@ -425,15 +456,9 @@ function clearInputs() {
     const maxLoan = Math.min(maxLoanByDscr, maxLoanByLtv);
     const suggestedOffer = (1 - nv("downPct") / 100) > 0 ? maxLoanByDscr / (1 - nv("downPct") / 100) : price;
 
-    const breakEvenRevenue = opex + annualDebt;
-    const nightlyCapacityRevenue = nv("nightlySites") * nv("operatingDays") * Math.max(1, nv("nightlyRate"));
-    const breakEvenOcc = nv("nightlySites") > 0 && nv("operatingDays") > 0 && nv("nightlyRate") > 0
-      ? Math.max(0, Math.min(1.5, (breakEvenRevenue - seasonalRevenue - annualRevenue - nv("otherIncome")) / nightlyCapacityRevenue))
-      : 0;
-
     let signal = { label: "STOP", cls: "stop", why: "Tight coverage or fragile operating assumptions." };
-    if (dscr >= 1.4 && cashFlow > 0 && breakEvenOcc <= 0.55) signal = { label: "GO", cls: "go", why: "Strong coverage, positive cash flow, and healthy occupancy buffer." };
-    else if (dscr >= 1.2 && cashFlow >= 0 && breakEvenOcc <= 0.7) signal = { label: "YIELD", cls: "yield", why: "Workable deal, but margins are tighter and need active management." };
+    if (dscr >= 1.4 && cashFlow > 0 && breakEvenMetric <= 0.55) signal = { label: "GO", cls: "go", why: "Strong coverage, positive cash flow, and healthy operating buffer." };
+    else if (dscr >= 1.2 && cashFlow >= 0 && breakEvenMetric <= 0.7) signal = { label: "YIELD", cls: "yield", why: "Workable deal, but margins are tighter and need active management." };
 
     const totalProjectCost = price + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
     const totalEquityRequired = down + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
@@ -457,21 +482,21 @@ function clearInputs() {
     return {
       price, down, baseLoan, loan, feeAmount, upfrontFeeCash, effectiveRate, primeRate, spreadPct, feePct, feeFinanced,
       annualDebt, monthlyDebt, nightlyRevenue, seasonalRevenue, annualRevenue, egi, opex, noi, cashFlow, dscr,
-      capRate, cashOnCash, impliedValue, maxLoan, suggestedOffer, breakEvenOcc, signal,
+      capRate, cashOnCash, impliedValue, maxLoan, suggestedOffer, breakEvenMetric, signal,
       totalProjectCost, totalEquityRequired, investorEquity, sponsorEquity, prefReturnPct, investorSplitPct, holdYears,
       noiGrowthPct, futureNoi, investorAnnualPref, investorProfitShare, sponsorProfitShare, investorTotalDists, investorEquityMultiple
     };
   }
 
   function calc() {
-    $("downPctLabel").textContent = nv("downPct") + "%";
-    $("occupancyPctLabel").textContent = nv("occupancyPct") + "%";
-    $("expenseRatioLabel").textContent = nv("expenseRatio") + "%";
     if ($("downAmt")) {
       const price = nv("offerPrice") > 0 ? nv("offerPrice") : nv("purchasePrice");
       const pctVal = nv("downPct");
       if (document.activeElement !== $("downAmt")) $("downAmt").value = (price * (pctVal / 100)).toFixed(0);
     }
+    $("downPctLabel").textContent = nv("downPct") + "%";
+    if ($("occupancyPct")) $("occupancyPctLabel").textContent = nv("occupancyPct") + "%";
+    if ($("expenseRatio")) $("expenseRatioLabel").textContent = nv("expenseRatio") + "%";
     const r = getResults();
 
     $("downHelper").textContent = `${money(r.down)} (${nv("downPct")}% of ${money(r.price)})`;
@@ -491,7 +516,7 @@ function clearInputs() {
     $("monthlyDebt").textContent = money(r.monthlyDebt) + " / month";
     $("maxLoan").textContent = money(r.maxLoan);
     $("suggestedOffer").textContent = money(r.suggestedOffer);
-    $("breakEvenOcc").textContent = pct(r.breakEvenOcc);
+    $("breakEvenOcc").textContent = pct(r.breakEvenMetric);
 
     $("signalLabel").textContent = r.signal.label;
     $("signalDot").className = "dot " + r.signal.cls;
@@ -527,7 +552,7 @@ function clearInputs() {
     $("sumNightly").textContent = money(r.nightlyRevenue);
     $("sumSeasonal").textContent = money(r.seasonalRevenue);
     $("sumAnnual").textContent = money(r.annualRevenue);
-    $("sumOther").textContent = money(nv("otherIncome"));
+    $("sumOther").textContent = assetType === "multifamily" ? money(nv("mfOtherIncome")) : money(nv("otherIncome"));
   }
 
   function generateSellerMessage() {
@@ -573,6 +598,7 @@ function clearInputs() {
 
   showTab("inputs");
   useCurrentPrime();
+  setAsset("rv");
   calc();
 </script>
 </body>
