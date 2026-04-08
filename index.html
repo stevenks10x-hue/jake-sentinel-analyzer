@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jake Sentinel Deal Analyzer v8</title>
+  <title>Jake Sentinel Deal Analyzer v9</title>
   <style>
     :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
     * { box-sizing:border-box; }
@@ -58,8 +58,8 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>Jake Sentinel Deal Analyzer v8</h1>
-        <p class="muted" style="margin-top:8px;">Revenue views now include max potential, base case, and conservative case. Asset type label updated to RV Park.</p>
+        <h1>Jake Sentinel Deal Analyzer v9</h1>
+        <p class="muted" style="margin-top:8px;">Revenue views now include max potential, base case, and conservative case. Added auto closing cost engine and total cash required display.</p>
       </div>
       <div class="btns noprint">
         <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV Park</button>
@@ -113,8 +113,26 @@
             </div>
             <div><label>Target DSCR</label><input id="targetDscr" type="number" value="1.25" oninput="calc()"></div>
             <div><label>Target LTV %</label><input id="targetLtv" type="number" value="65" oninput="calc()"></div>
-            <div><label>Closing Costs</label><input id="closingCosts" type="number" value="25000" oninput="calc()"></div>
+            <div>
+              <label>Closing Cost Mode</label>
+              <select id="closingCostMode" onchange="toggleClosingCostMode(); calc()" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; font-size:14px; background:#fff;">
+                <option value="auto" selected>Auto (recommended)</option>
+                <option value="manual">Manual override</option>
+              </select>
+            </div>
             <div><label>Capex Reserve</label><input id="capexReserve" type="number" value="30000" oninput="calc()"></div>
+
+            <div id="autoClosingCostsBlock" class="two" style="grid-column:1 / -1;">
+              <div><label>Legal Fees</label><input id="legalFees" type="number" value="3500" oninput="calc()"></div>
+              <div><label>Appraisal / Inspection</label><input id="dueDiligenceCosts" type="number" value="3000" oninput="calc()"></div>
+              <div><label>Registration / Title</label><input id="registrationCosts" type="number" value="1000" oninput="calc()"></div>
+              <div><label>Misc Closing Costs</label><input id="miscClosingCosts" type="number" value="1500" oninput="calc()"></div>
+            </div>
+
+            <div id="manualClosingCostsBlock" class="hidden" style="grid-column:1 / -1;">
+              <label>Manual Closing Costs</label>
+              <input id="closingCostsManual" type="number" value="25000" oninput="calc()">
+            </div>
             <div class="btns noprint">
               <button onclick="clearInputs()">Reset to Defaults</button>
               <button onclick="clearAllInputs()">Clear All (Zero)</button>
@@ -174,6 +192,7 @@
           <div class="metric"><div class="l">Effective Rate</div><div class="v" id="effectiveRate"></div><div class="s" id="effectiveRateSub"></div></div>
           <div class="metric"><div class="l">Financing Fee</div><div class="v" id="feeAmount"></div><div class="s" id="feeAmountSub"></div></div>
           <div class="metric"><div class="l">Upfront Fee Cash</div><div class="v" id="upfrontFeeCash"></div></div>
+          <div class="metric"><div class="l">Total Cash Required</div><div class="v" id="totalCashRequired"></div><div class="s">Down payment + closing + capex + upfront fee</div></div>
           <div class="metric"><div class="l">Annual Debt Service</div><div class="v" id="annualDebt"></div><div class="s" id="monthlyDebt"></div></div>
           <div class="metric"><div class="l">Max Loan</div><div class="v" id="maxLoan"></div><div class="s">DSCR / LTV constrained</div></div>
           <div class="metric"><div class="l">Suggested Offer</div><div class="v" id="suggestedOffer"></div><div class="s">Based on target DSCR</div></div>
@@ -255,6 +274,8 @@
         <div class="summary-row"><span class="muted">Down Payment</span><strong id="sumDown"></strong></div>
         <div class="summary-row"><span class="muted">Rate Structure</span><strong id="sumRate"></strong></div>
         <div class="summary-row"><span class="muted">Fee</span><strong id="sumFee"></strong></div>
+        <div class="summary-row"><span class="muted">Closing Costs</span><strong id="sumClosing"></strong></div>
+        <div class="summary-row"><span class="muted">Total Cash Required</span><strong id="sumCashReq"></strong></div>
         <div class="summary-row"><span class="muted">NOI</span><strong id="sumNoi"></strong></div>
         <div class="summary-row"><span class="muted">DSCR</span><strong id="sumDscr"></strong></div>
         <div class="summary-row"><span class="muted">Signal</span><strong id="sumSignal"></strong></div>
@@ -289,6 +310,30 @@
   }
   function setValue(id, value) { const el = $(id); if (el) el.value = value; }
   function setChecked(id, value) { const el = $(id); if (el) el.checked = value; }
+  function toggleClosingCostMode() {
+    const autoMode = $("closingCostMode") ? $("closingCostMode").value === "auto" : true;
+    if ($("autoClosingCostsBlock")) $("autoClosingCostsBlock").classList.toggle("hidden", !autoMode);
+    if ($("manualClosingCostsBlock")) $("manualClosingCostsBlock").classList.toggle("hidden", autoMode);
+  }
+
+  function getClosingCosts() {
+    const mode = $("closingCostMode") ? $("closingCostMode").value : "auto";
+    if (mode === "manual") {
+      return {
+        closingCosts: nv("closingCostsManual"),
+        closingCostDetail: "Manual closing cost input"
+      };
+    }
+    const legal = nv("legalFees");
+    const dd = nv("dueDiligenceCosts");
+    const reg = nv("registrationCosts");
+    const misc = nv("miscClosingCosts");
+    return {
+      closingCosts: legal + dd + reg + misc,
+      closingCostDetail: `Legal ${money(legal)} + DD ${money(dd)} + Registration ${money(reg)} + Misc ${money(misc)}`
+    };
+  }
+
   function showTab(tab) {
     document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
     document.querySelectorAll(".tab-panel").forEach((el) => el.classList.add("hidden"));
@@ -311,7 +356,7 @@
     calc();
   }
   function clearAllInputs() {
-    ["dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears","primeRate","spreadPct","feePct","targetDscr","targetLtv","closingCosts","capexReserve","occupancyPct","conservativeOccPct","nightlySites","operatingDays","nightlyRate","seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites","annualMonthlyRate","otherIncome","expenseRatio","investorEquity","sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct","unitCount","avgMonthlyRent","vacancyPct","conservativeVacancyPct","mfOtherIncome","mfExpenseRatio","marketCapRate"].forEach(id => {
+    ["dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears","primeRate","spreadPct","feePct","targetDscr","targetLtv","closingCostMode","legalFees","dueDiligenceCosts","registrationCosts","miscClosingCosts","closingCostsManual","capexReserve","occupancyPct","conservativeOccPct","nightlySites","operatingDays","nightlyRate","seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites","annualMonthlyRate","otherIncome","expenseRatio","investorEquity","sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct","unitCount","avgMonthlyRent","vacancyPct","conservativeVacancyPct","mfOtherIncome","mfExpenseRatio","marketCapRate"].forEach(id => {
       const el = $(id);
       if (!el) return;
       if (el.type === "checkbox") el.checked = false;
@@ -337,7 +382,12 @@
     setChecked("feeFinanced", true);
     setValue("targetDscr", "1.25");
     setValue("targetLtv", "65");
-    setValue("closingCosts", "25000");
+    setValue("closingCostMode", "auto");
+    setValue("legalFees", "3500");
+    setValue("dueDiligenceCosts", "3000");
+    setValue("registrationCosts", "1000");
+    setValue("miscClosingCosts", "1500");
+    setValue("closingCostsManual", "25000");
     setValue("capexReserve", "30000");
     setValue("occupancyPct", "42");
     setValue("conservativeOccPct", "35");
@@ -402,6 +452,8 @@
     const upfrontFeeCash = feeFinanced ? 0 : feeAmount;
     const annualDebt = monthlyPayment(loan, effectiveRate, nv("amortYears")) * 12;
     const monthlyDebt = annualDebt / 12;
+    const closingData = getClosingCosts();
+    const closingCosts = closingData.closingCosts;
 
     let primaryRevenue = 0, secondaryRevenue = 0, annualRevenue = 0, egi = 0, opex = 0, breakEvenMetric = 0;
     let maxPotentialRevenue = 0, baseCaseRevenue = 0, conservativeRevenue = 0;
@@ -451,7 +503,7 @@
     const cashFlow = noi - annualDebt;
     const dscr = annualDebt > 0 ? noi / annualDebt : 0;
     const capRate = price > 0 ? noi / price : 0;
-    const totalCashIn = down + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
+    const totalCashIn = down + closingCosts + nv("capexReserve") + upfrontFeeCash;
     const cashOnCash = totalCashIn > 0 ? cashFlow / totalCashIn : 0;
     const impliedValue = nv("marketCapRate") > 0 ? noi / (nv("marketCapRate") / 100) : 0;
     const maxAnnualDebt = nv("targetDscr") > 0 ? noi / nv("targetDscr") : 0;
@@ -464,8 +516,9 @@
     if (dscr >= 1.4 && cashFlow > 0 && breakEvenMetric <= 0.55) signal = { label: "GO", cls: "go", why: "Strong coverage, positive cash flow, and healthy operating buffer." };
     else if (dscr >= 1.2 && cashFlow >= 0 && breakEvenMetric <= 0.7) signal = { label: "YIELD", cls: "yield", why: "Workable deal, but margins are tighter and need active management." };
 
-    const totalProjectCost = price + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
-    const totalEquityRequired = down + nv("closingCosts") + nv("capexReserve") + upfrontFeeCash;
+    const totalProjectCost = price + closingCosts + nv("capexReserve") + upfrontFeeCash;
+    const totalEquityRequired = down + closingCosts + nv("capexReserve") + upfrontFeeCash;
+    const totalCashRequired = down + closingCosts + nv("capexReserve") + upfrontFeeCash;
     const investorEquity = nv("investorEquity");
     const sponsorEquity = nv("sponsorEquity");
     const prefReturnPct = nv("prefReturnPct");
@@ -486,7 +539,7 @@
       annualDebt, monthlyDebt, primaryRevenue, secondaryRevenue, annualRevenue, egi, opex, noi, cashFlow, dscr, capRate, cashOnCash,
       impliedValue, maxLoan, suggestedOffer, breakEvenMetric, signal, totalProjectCost, totalEquityRequired, investorEquity, sponsorEquity,
       prefReturnPct, investorSplitPct, holdYears, noiGrowthPct, futureNoi, investorAnnualPref, investorProfitShare, sponsorProfitShare,
-      investorTotalDists, investorEquityMultiple, maxPotentialRevenue, baseCaseRevenue, conservativeRevenue, maxPotentialSub, baseCaseSub, conservativeSub };
+      investorTotalDists, investorEquityMultiple, maxPotentialRevenue, baseCaseRevenue, conservativeRevenue, maxPotentialSub, baseCaseSub, conservativeSub, closingCosts, closingCostDetail: closingData.closingCostDetail, totalCashRequired };
   }
   function calc() {
     if ($("downAmt")) {
@@ -510,6 +563,7 @@
     $("feeAmount").textContent = money(r.feeAmount);
     $("feeAmountSub").textContent = `${r.feePct.toFixed(2)}% fee` + (r.feeFinanced ? " financed" : " paid in cash");
     $("upfrontFeeCash").textContent = money(r.upfrontFeeCash);
+    $("totalCashRequired").textContent = money(r.totalCashRequired);
     $("annualDebt").textContent = money(r.annualDebt);
     $("monthlyDebt").textContent = money(r.monthlyDebt) + " / month";
     $("maxLoan").textContent = money(r.maxLoan);
@@ -546,6 +600,8 @@
     $("sumDown").textContent = `${money(r.down)} (${nv("downPct")}%)`;
     $("sumRate").textContent = `${r.primeRate.toFixed(2)}% + ${r.spreadPct.toFixed(2)}% = ${r.effectiveRate.toFixed(2)}%`;
     $("sumFee").textContent = `${money(r.feeAmount)} (${r.feeFinanced ? "financed" : "cash"})`;
+    $("sumClosing").textContent = `${money(r.closingCosts)} (${($("closingCostMode") && $("closingCostMode").value === "auto") ? "auto" : "manual"})`;
+    $("sumCashReq").textContent = money(r.totalCashRequired);
     $("sumNoi").textContent = money(r.noi);
     $("sumDscr").textContent = r.dscr.toFixed(2) + "x";
     $("sumSignal").textContent = r.signal.label;
@@ -563,6 +619,8 @@
       `• Down payment: ${money(r.down)} (${nv("downPct")}%)\n` +
       `• Rate structure: Prime ${r.primeRate.toFixed(2)}% + ${r.spreadPct.toFixed(2)}% = ${r.effectiveRate.toFixed(2)}%\n` +
       `• Financing fee: ${money(r.feeAmount)} (${r.feePct.toFixed(2)}% - ${r.feeFinanced ? "financed" : "cash"})\n` +
+      `• Closing costs: ${money(r.closingCosts)}\n` +
+      `• Total cash required: ${money(r.totalCashRequired)}\n` +
       `• NOI: ${money(r.noi)}\n` +
       `• Base case revenue: ${money(r.baseCaseRevenue)}\n` +
       `• Conservative revenue: ${money(r.conservativeRevenue)}\n` +
@@ -581,6 +639,8 @@
       `• Total equity required: ${money(r.totalEquityRequired)}\n` +
       `• Investor equity: ${money(r.investorEquity)}\n` +
       `• Sponsor equity: ${money(r.sponsorEquity)}\n` +
+      `• Closing costs: ${money(r.closingCosts)}\n` +
+      `• Total cash required: ${money(r.totalCashRequired)}\n` +
       `• Annual pref: ${money(r.investorAnnualPref)} (${r.prefReturnPct.toFixed(2)}%)\n` +
       `• Profit split to investor after pref: ${r.investorSplitPct.toFixed(2)}%\n` +
       `• Hold period: ${r.holdYears} years\n` +
@@ -598,6 +658,7 @@
   function clearSellerMessage() { $("sellerMessage").value = ""; }
   function clearInvestorMessage() { $("investorMessage").value = ""; }
   showTab("inputs");
+  toggleClosingCostMode();
   useCurrentPrime();
   setAsset("rv");
   calc();
