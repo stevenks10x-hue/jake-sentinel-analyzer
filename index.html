@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jake Sentinel Deal Analyzer v9</title>
+  <title>Jake Sentinel Deal Analyzer v11</title>
   <style>
     :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
     * { box-sizing:border-box; }
@@ -58,8 +58,8 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>Jake Sentinel Deal Analyzer v9</h1>
-        <p class="muted" style="margin-top:8px;">Revenue views now include max potential, base case, and conservative case. Added auto closing cost engine and total cash required display.</p>
+        <h1>Jake Sentinel Deal Analyzer v11</h1>
+        <p class="muted" style="margin-top:8px;">Full revenue engine with RV site mix, tent sites, glamping domes, and lender vs operator toggles.</p>
       </div>
       <div class="btns noprint">
         <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV Park</button>
@@ -114,6 +114,15 @@
             <div><label>Target DSCR</label><input id="targetDscr" type="number" value="1.25" oninput="calc()"></div>
             <div><label>Target LTV %</label><input id="targetLtv" type="number" value="65" oninput="calc()"></div>
             <div>
+              <label>NOI Mode</label>
+              <select id="noiMode" onchange="calc()" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; font-size:14px; background:#fff;">
+                <option value="lender" selected>Lender (default)</option>
+                <option value="base">Base Case</option>
+                <option value="upside">Upside</option>
+              </select>
+            </div>
+            <div><label>Lender NOI Override</label><input id="lenderNoi" type="number" value="63224" oninput="calc()"></div>
+            <div>
               <label>Closing Cost Mode</label>
               <select id="closingCostMode" onchange="toggleClosingCostMode(); calc()" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; font-size:14px; background:#fff;">
                 <option value="auto" selected>Auto (recommended)</option>
@@ -153,7 +162,7 @@
             <div><label>Conservative Occupancy %</label><input id="conservativeOccPct" type="number" value="35" oninput="calc()"></div>
             <div><label>Nightly Sites</label><input id="nightlySites" type="number" value="50" oninput="calc()"></div>
             <div><label>Operating Days</label><input id="operatingDays" type="number" value="180" oninput="calc()"></div>
-            <div><label>Nightly Rate</label><input id="nightlyRate" type="number" value="52" oninput="calc()"></div>
+            <div><label>Average Nightly Rate</label><input id="nightlyRate" type="number" value="52" oninput="calc()"></div>
             <div><label>Seasonal Sites</label><input id="seasonalSites" type="number" value="10" oninput="calc()"></div>
             <div><label>Seasonal Monthly Rate</label><input id="seasonalMonthlyRate" type="number" value="850" oninput="calc()"></div>
             <div><label>Seasonal Months</label><input id="seasonalMonths" type="number" value="6" oninput="calc()"></div>
@@ -171,6 +180,33 @@
             <div><label>Other Income (annual)</label><input id="mfOtherIncome" type="number" value="6000" oninput="calc()"></div>
             <div><label>Expense Ratio %</label><input id="mfExpenseRatio" type="number" value="40" oninput="calc()"></div>
             <div class="helper" id="mfHelper" style="align-self:end;">Multi-family mode swaps nightly/site logic for rent + vacancy logic.</div>
+          </div>
+
+        <div class="card">
+          <h2>Supplemental Revenue</h2>
+          <div class="two">
+            <div><label>Tent Sites (count)</label><input id="tentSites" type="number" value="10" oninput="calc()"></div>
+            <div><label>Tent Rate</label><input id="tentRate" type="number" value="25" oninput="calc()"></div>
+            <div><label>Tent Occupancy %</label><input id="tentOcc" type="number" value="40" oninput="calc()"></div>
+            <div><label>Tent Operating Days</label><input id="tentDays" type="number" value="120" oninput="calc()"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Premium Revenue (Domes / Cabins)</h2>
+          <div class="two">
+            <div><label>Number of Units</label><input id="domeCount" type="number" value="4" oninput="calc()"></div>
+            <div><label>Nightly Rate</label><input id="domeRate" type="number" value="175" oninput="calc()"></div>
+            <div><label>Occupancy %</label><input id="domeOcc" type="number" value="45" oninput="calc()"></div>
+            <div><label>Operating Days</label><input id="domeDays" type="number" value="150" oninput="calc()"></div>
+            <div>
+              <label>Include in Lender NOI</label>
+              <select id="domeLenderMode" onchange="calc()">
+                <option value="exclude" selected>Exclude</option>
+                <option value="discount">50% Discount</option>
+                <option value="full">Full</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -194,8 +230,9 @@
           <div class="metric"><div class="l">Upfront Fee Cash</div><div class="v" id="upfrontFeeCash"></div></div>
           <div class="metric"><div class="l">Total Cash Required</div><div class="v" id="totalCashRequired"></div><div class="s">Down payment + closing + capex + upfront fee</div></div>
           <div class="metric"><div class="l">Annual Debt Service</div><div class="v" id="annualDebt"></div><div class="s" id="monthlyDebt"></div></div>
-          <div class="metric"><div class="l">Max Loan</div><div class="v" id="maxLoan"></div><div class="s">DSCR / LTV constrained</div></div>
-          <div class="metric"><div class="l">Suggested Offer</div><div class="v" id="suggestedOffer"></div><div class="s">Based on target DSCR</div></div>
+          <div class="metric"><div class="l">Max Loan (Lender)</div><div class="v" id="maxLoan"></div><div class="s">Based on lender NOI and target DSCR / LTV</div></div>
+          <div class="metric"><div class="l">Loan Reality Check</div><div class="v" id="loanReality"></div><div class="s" id="loanRealitySub"></div></div>
+          <div class="metric"><div class="l">Suggested Offer</div><div class="v" id="suggestedOffer"></div><div class="s">Based on lender NOI + target DSCR</div></div>
           <div class="metric"><div class="l">Break-even Occupancy / Vacancy</div><div class="v" id="breakEvenOcc"></div></div>
         </div>
       </div>
@@ -212,9 +249,10 @@
         <div class="metrics">
           <div class="metric"><div class="l">Effective Gross Income</div><div class="v" id="egi"></div></div>
           <div class="metric"><div class="l">Operating Expenses</div><div class="v" id="opex"></div></div>
-          <div class="metric"><div class="l">NOI</div><div class="v" id="noi"></div></div>
-          <div class="metric"><div class="l">Cash Flow</div><div class="v" id="cashFlow"></div></div>
-          <div class="metric"><div class="l">DSCR</div><div class="v" id="dscr"></div></div>
+          <div class="metric"><div class="l">Selected NOI</div><div class="v" id="noi"></div><div class="s" id="noiSub"></div></div>
+          <div class="metric"><div class="l">Cash Flow</div><div class="v" id="cashFlow"></div><div class="s" id="cashFlowSub"></div></div>
+          <div class="metric"><div class="l">Lender DSCR</div><div class="v" id="lenderDscr"></div><div class="s">Signal is based on this</div></div>
+          <div class="metric"><div class="l">Base / Upside DSCR</div><div class="v" id="dscr"></div><div class="s" id="dscrSub"></div></div>
           <div class="metric"><div class="l">Cap Rate</div><div class="v" id="capRate"></div></div>
           <div class="metric"><div class="l">Cash on Cash</div><div class="v" id="cashOnCash"></div></div>
           <div class="metric"><div class="l">Implied Value</div><div class="v" id="impliedValue"></div></div>
@@ -277,7 +315,8 @@
         <div class="summary-row"><span class="muted">Closing Costs</span><strong id="sumClosing"></strong></div>
         <div class="summary-row"><span class="muted">Total Cash Required</span><strong id="sumCashReq"></strong></div>
         <div class="summary-row"><span class="muted">NOI</span><strong id="sumNoi"></strong></div>
-        <div class="summary-row"><span class="muted">DSCR</span><strong id="sumDscr"></strong></div>
+        <div class="summary-row"><span class="muted">Lender DSCR</span><strong id="sumDscr"></strong></div>
+        <div class="summary-row"><span class="muted">NOI Mode</span><strong id="sumNoiMode"></strong></div>
         <div class="summary-row"><span class="muted">Signal</span><strong id="sumSignal"></strong></div>
         <div class="summary-row"><span class="muted">Primary Revenue</span><strong id="sumNightly"></strong></div>
         <div class="summary-row"><span class="muted">Secondary Revenue</span><strong id="sumSeasonal"></strong></div>
@@ -310,6 +349,12 @@
   }
   function setValue(id, value) { const el = $(id); if (el) el.value = value; }
   function setChecked(id, value) { const el = $(id); if (el) el.checked = value; }
+  function modeLabel(mode) {
+    if (mode === "lender") return "Lender";
+    if (mode === "base") return "Base Case";
+    if (mode === "upside") return "Upside";
+    return mode;
+  }
   function toggleClosingCostMode() {
     const autoMode = $("closingCostMode") ? $("closingCostMode").value === "auto" : true;
     if ($("autoClosingCostsBlock")) $("autoClosingCostsBlock").classList.toggle("hidden", !autoMode);
@@ -356,7 +401,7 @@
     calc();
   }
   function clearAllInputs() {
-    ["dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears","primeRate","spreadPct","feePct","targetDscr","targetLtv","closingCostMode","legalFees","dueDiligenceCosts","registrationCosts","miscClosingCosts","closingCostsManual","capexReserve","occupancyPct","conservativeOccPct","nightlySites","operatingDays","nightlyRate","seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites","annualMonthlyRate","otherIncome","expenseRatio","investorEquity","sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct","unitCount","avgMonthlyRent","vacancyPct","conservativeVacancyPct","mfOtherIncome","mfExpenseRatio","marketCapRate"].forEach(id => {
+    ["dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears","primeRate","spreadPct","feePct","targetDscr","targetLtv","noiMode","lenderNoi","closingCostMode","legalFees","dueDiligenceCosts","registrationCosts","miscClosingCosts","closingCostsManual","capexReserve","occupancyPct","conservativeOccPct","nightlySites","operatingDays","nightlyRate","seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites","annualMonthlyRate","otherIncome","expenseRatio","investorEquity","sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct","unitCount","avgMonthlyRent","vacancyPct","conservativeVacancyPct","mfOtherIncome","mfExpenseRatio","marketCapRate"].forEach(id => {
       const el = $(id);
       if (!el) return;
       if (el.type === "checkbox") el.checked = false;
@@ -382,6 +427,8 @@
     setChecked("feeFinanced", true);
     setValue("targetDscr", "1.25");
     setValue("targetLtv", "65");
+    setValue("noiMode", "lender");
+    setValue("lenderNoi", "63224");
     setValue("closingCostMode", "auto");
     setValue("legalFees", "3500");
     setValue("dueDiligenceCosts", "3000");
@@ -499,22 +546,53 @@
       conservativeSub = `Using ${nv("conservativeOccPct").toFixed(2)}% occupancy`;
     }
 
-    const noi = egi - opex;
+    const baseNoi = egi - opex;
+
+// Tent revenue
+const tentRevenue = nv("tentSites") * nv("tentRate") * (nv("tentOcc")/100) * nv("tentDays");
+
+// Dome revenue
+const domeBase = nv("domeCount") * nv("domeRate") * (nv("domeOcc")/100) * nv("domeDays");
+
+let domeLender = 0;
+if ($("domeLenderMode").value === "discount") domeLender = domeBase * 0.5;
+else if ($("domeLenderMode").value === "full") domeLender = domeBase;
+
+// Add to base NOI
+const baseNoiWithExtras = baseNoi + tentRevenue + domeBase;
+const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
+    let conservativeNoi = 0;
+    let upsideNoi = 0;
+    if (assetType === "multifamily") {
+      conservativeNoi = conservativeRevenue - (conservativeRevenue * (nv("mfExpenseRatio") / 100));
+      upsideNoi = maxPotentialRevenue - (maxPotentialRevenue * (nv("mfExpenseRatio") / 100));
+    } else {
+      conservativeNoi = conservativeRevenue - (conservativeRevenue * (nv("expenseRatio") / 100));
+      upsideNoi = maxPotentialRevenue - (maxPotentialRevenue * (nv("expenseRatio") / 100));
+    }
+    const lenderNoi = lenderNoiAdjusted;
+    const selectedMode = $("noiMode") ? $("noiMode").value : "lender";
+    const noi = selectedMode === "base" ? baseNoi : (selectedMode === "upside" ? upsideNoi : lenderNoi);
     const cashFlow = noi - annualDebt;
+    const lenderCashFlow = lenderNoi - annualDebt;
+    const lenderDscr = annualDebt > 0 ? lenderNoi / annualDebt : 0;
+    const baseDscr = annualDebt > 0 ? baseNoi / annualDebt : 0;
+    const upsideDscr = annualDebt > 0 ? upsideNoi / annualDebt : 0;
     const dscr = annualDebt > 0 ? noi / annualDebt : 0;
     const capRate = price > 0 ? noi / price : 0;
     const totalCashIn = down + closingCosts + nv("capexReserve") + upfrontFeeCash;
     const cashOnCash = totalCashIn > 0 ? cashFlow / totalCashIn : 0;
     const impliedValue = nv("marketCapRate") > 0 ? noi / (nv("marketCapRate") / 100) : 0;
-    const maxAnnualDebt = nv("targetDscr") > 0 ? noi / nv("targetDscr") : 0;
+    const maxAnnualDebt = nv("targetDscr") > 0 ? lenderNoi / nv("targetDscr") : 0;
     const maxLoanByDscr = maxLoanFromMonthlyPayment(maxAnnualDebt / 12, effectiveRate, nv("amortYears"));
     const maxLoanByLtv = price * (nv("targetLtv") / 100);
     const maxLoan = Math.min(maxLoanByDscr, maxLoanByLtv);
     const suggestedOffer = (1 - nv("downPct") / 100) > 0 ? maxLoanByDscr / (1 - nv("downPct") / 100) : price;
 
-    let signal = { label: "STOP", cls: "stop", why: "Tight coverage or fragile operating assumptions." };
-    if (dscr >= 1.4 && cashFlow > 0 && breakEvenMetric <= 0.55) signal = { label: "GO", cls: "go", why: "Strong coverage, positive cash flow, and healthy operating buffer." };
-    else if (dscr >= 1.2 && cashFlow >= 0 && breakEvenMetric <= 0.7) signal = { label: "YIELD", cls: "yield", why: "Workable deal, but margins are tighter and need active management." };
+    let signal = { label: "NO", cls: "stop", why: "Lender NOI does not comfortably support debt or downside." };
+    if (lenderDscr >= 2.0 && lenderCashFlow > 0 && breakEvenMetric <= 0.55) signal = { label: "STRONG", cls: "go", why: "Lender NOI supports debt with a strong margin of safety." };
+    else if (lenderDscr >= 1.5 && lenderCashFlow > 0 && breakEvenMetric <= 0.7) signal = { label: "GOOD", cls: "go", why: "Lender NOI covers debt comfortably with a reasonable buffer." };
+    else if (lenderDscr >= 1.25 && lenderCashFlow >= 0) signal = { label: "RISK", cls: "yield", why: "Above minimum lender threshold, but tighter than ideal." };
 
     const totalProjectCost = price + closingCosts + nv("capexReserve") + upfrontFeeCash;
     const totalEquityRequired = down + closingCosts + nv("capexReserve") + upfrontFeeCash;
@@ -539,7 +617,7 @@
       annualDebt, monthlyDebt, primaryRevenue, secondaryRevenue, annualRevenue, egi, opex, noi, cashFlow, dscr, capRate, cashOnCash,
       impliedValue, maxLoan, suggestedOffer, breakEvenMetric, signal, totalProjectCost, totalEquityRequired, investorEquity, sponsorEquity,
       prefReturnPct, investorSplitPct, holdYears, noiGrowthPct, futureNoi, investorAnnualPref, investorProfitShare, sponsorProfitShare,
-      investorTotalDists, investorEquityMultiple, maxPotentialRevenue, baseCaseRevenue, conservativeRevenue, maxPotentialSub, baseCaseSub, conservativeSub, closingCosts, closingCostDetail: closingData.closingCostDetail, totalCashRequired };
+      investorTotalDists, investorEquityMultiple, maxPotentialRevenue, baseCaseRevenue, conservativeRevenue, maxPotentialSub, baseCaseSub, conservativeSub, closingCosts, closingCostDetail: closingData.closingCostDetail, totalCashRequired, lenderNoi, baseNoi, conservativeNoi, upsideNoi, lenderDscr, baseDscr, upsideDscr, lenderCashFlow, selectedMode, tentRevenue, domeBase };
   }
   function calc() {
     if ($("downAmt")) {
@@ -567,6 +645,8 @@
     $("annualDebt").textContent = money(r.annualDebt);
     $("monthlyDebt").textContent = money(r.monthlyDebt) + " / month";
     $("maxLoan").textContent = money(r.maxLoan);
+    $("loanReality").textContent = r.loan <= r.maxLoan ? "SAFE" : (r.loan <= r.maxLoan * 1.1 ? "TIGHT" : "EXCEEDS");
+    $("loanRealitySub").textContent = `Your loan ${money(r.loan)} vs lender max ${money(r.maxLoan)}`;
     $("suggestedOffer").textContent = money(r.suggestedOffer);
     $("breakEvenOcc").textContent = pct(r.breakEvenMetric);
     $("signalLabel").textContent = r.signal.label;
@@ -575,8 +655,12 @@
     $("egi").textContent = money(r.egi);
     $("opex").textContent = money(r.opex);
     $("noi").textContent = money(r.noi);
+    $("noiSub").textContent = `Selected ${modeLabel(r.selectedMode)} | Lender ${money(r.lenderNoi)} | Base ${money(r.baseNoi)} | Upside ${money(r.upsideNoi)}`;
     $("cashFlow").textContent = money(r.cashFlow);
-    $("dscr").textContent = r.dscr.toFixed(2) + "x";
+    $("cashFlowSub").textContent = `Lender cash flow ${money(r.lenderCashFlow)}`;
+    $("lenderDscr").textContent = r.lenderDscr.toFixed(2) + "x";
+    $("dscr").textContent = `${r.baseDscr.toFixed(2)}x / ${r.upsideDscr.toFixed(2)}x`;
+    $("dscrSub").textContent = `Base / Upside`;
     $("capRate").textContent = pct(r.capRate);
     $("cashOnCash").textContent = pct(r.cashOnCash);
     $("impliedValue").textContent = money(r.impliedValue);
@@ -603,12 +687,13 @@
     $("sumClosing").textContent = `${money(r.closingCosts)} (${($("closingCostMode") && $("closingCostMode").value === "auto") ? "auto" : "manual"})`;
     $("sumCashReq").textContent = money(r.totalCashRequired);
     $("sumNoi").textContent = money(r.noi);
-    $("sumDscr").textContent = r.dscr.toFixed(2) + "x";
+    $("sumDscr").textContent = r.lenderDscr.toFixed(2) + "x";
+    $("sumNoiMode").textContent = modeLabel(r.selectedMode);
     $("sumSignal").textContent = r.signal.label;
     $("sumNightly").textContent = money(r.primaryRevenue);
     $("sumSeasonal").textContent = money(r.secondaryRevenue);
     $("sumAnnual").textContent = money(r.annualRevenue);
-    $("sumOther").textContent = assetType === "multifamily" ? money(nv("mfOtherIncome")) : money(nv("otherIncome"));
+    $("sumOther").textContent = assetType === "multifamily" ? money(nv("mfOtherIncome")) : money(nv("otherIncome")) + " + Tent " + money(r.tentRevenue) + " + Domes " + money(r.domeBase);
   }
   function generateSellerMessage() {
     const r = getResults();
@@ -621,10 +706,12 @@
       `• Financing fee: ${money(r.feeAmount)} (${r.feePct.toFixed(2)}% - ${r.feeFinanced ? "financed" : "cash"})\n` +
       `• Closing costs: ${money(r.closingCosts)}\n` +
       `• Total cash required: ${money(r.totalCashRequired)}\n` +
-      `• NOI: ${money(r.noi)}\n` +
+      `• Selected NOI: ${money(r.noi)}\n` +
+      `• Lender NOI: ${money(r.lenderNoi)}\n` +
       `• Base case revenue: ${money(r.baseCaseRevenue)}\n` +
       `• Conservative revenue: ${money(r.conservativeRevenue)}\n` +
-      `• DSCR: ${r.dscr.toFixed(2)}x\n\n` +
+      `• Lender DSCR: ${r.lenderDscr.toFixed(2)}x\n` +
+      `• Base / Upside DSCR: ${r.baseDscr.toFixed(2)}x / ${r.upsideDscr.toFixed(2)}x\n\n` +
       `At the current price, the deal does not support our required coverage and risk thresholds. ` +
       `To move forward, we would need pricing or terms that bring the deal closer to ${money(r.suggestedOffer)}.\n\n` +
       `We are serious, but we need to stay aligned with sustainable operating performance and lender requirements.`;
@@ -647,7 +734,8 @@
       `• Max potential revenue: ${money(r.maxPotentialRevenue)}\n` +
       `• Base case revenue: ${money(r.baseCaseRevenue)}\n` +
       `• Conservative revenue: ${money(r.conservativeRevenue)}\n` +
-      `• NOI today: ${money(r.noi)}\n` +
+      `• Selected NOI: ${money(r.noi)}\n` +
+      `• Lender NOI: ${money(r.lenderNoi)}\n` +
       `• Stabilized NOI projection: ${money(r.futureNoi)}\n` +
       `• DSCR: ${r.dscr.toFixed(2)}x\n` +
       `• Signal: ${r.signal.label}\n` +
