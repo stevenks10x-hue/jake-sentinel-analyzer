@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jake Sentinel Deal Analyzer v12</title>
+  <title>Jake Sentinel Deal Analyzer v12.2</title>
   <style>
     :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
     * { box-sizing:border-box; }
@@ -58,7 +58,7 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>Jake Sentinel Deal Analyzer v12</h1>
+        <h1>Jake Sentinel Deal Analyzer v12.2</h1>
         <p class="muted" style="margin-top:8px;">Adds detailed site-type blending, seasonality curves, and refinance projection for bank-ready presentation.</p>
       </div>
       <div class="btns noprint">
@@ -88,8 +88,8 @@
           <div class="two">
             <div><label>Deal Name</label><input id="dealName" value="My Deal" oninput="calc()"></div>
             <div><label>Market Cap Rate %</label><input id="marketCapRate" type="number" value="8.5" oninput="calc()"></div>
-            <div><label>Purchase Price</label><input id="purchasePrice" type="number" value="750000" oninput="calc()"></div>
-            <div><label>Offer Price</label><input id="offerPrice" type="number" value="750000" oninput="calc()"></div>
+            <div><label>Purchase Price</label><input id="purchasePrice" type="number" value="100000" oninput="calc()"></div>
+            <div><label>Offer Price</label><input id="offerPrice" type="number" value="100000" oninput="calc()"></div>
             <div>
               <label>Down % <span id="downPctLabel"></span></label>
               <input id="downPct" type="range" min="0" max="100" step="1" value="25" oninput="syncDownPaymentFromPct(); calc()">
@@ -97,7 +97,7 @@
             </div>
             <div>
               <label>Down Payment $</label>
-              <input id="downAmt" type="number" value="187500" oninput="syncDownPaymentFromAmt(); calc()">
+              <input id="downAmt" type="number" value="25000" oninput="syncDownPaymentFromAmt(); calc()">
             </div>
             <div><label>Amortization Years</label><input id="amortYears" type="number" value="25" oninput="calc()"></div>
             <div><label>Prime Rate %</label><input id="primeRate" type="number" value="4.45" oninput="calc()"></div>
@@ -250,6 +250,7 @@
       </div>
 
       <div id="tab-debt" class="tab-panel hidden">
+        <div class="card"><h2>Debt Analysis</h2><p class="muted">Lender-oriented debt sizing, cash required, and reality checks.</p></div>
         <div class="metrics">
           <div class="metric"><div class="l">Base Loan Amount</div><div class="v" id="baseLoanAmount"></div></div>
           <div class="metric"><div class="l">Final Loan Amount</div><div class="v" id="loanAmount"></div><div class="s" id="loanAmountSub"></div></div>
@@ -267,6 +268,7 @@
       </div>
 
       <div id="tab-results" class="tab-panel hidden">
+        <div class="card"><h2>Results Analysis</h2><p class="muted">NOI, DSCR, value, and deal signal outputs.</p></div>
         <div class="card signal">
           <div>
             <div class="muted">Deal Signal</div>
@@ -289,6 +291,7 @@
       </div>
 
       <div id="tab-investor" class="tab-panel hidden">
+        <div class="card"><h2>Investor Analysis</h2><p class="muted">Equity structure, returns, and refinance projection.</p></div>
         <div class="card">
           <h2>Investor Inputs</h2>
           <div class="two">
@@ -310,9 +313,7 @@
           <div class="metric"><div class="l">Investor Equity Multiple</div><div class="v" id="investorEquityMultiple"></div></div>
           <div class="metric"><div class="l">Projected Stabilized NOI</div><div class="v" id="futureNoi"></div></div>
         </div>
-      </div>
-
-      <div class="card">
+        <div class="card">
           <h2>Refinance Projection</h2>
           <div class="two">
             <div><label>Refi Year</label><input id="refiYear" type="number" value="2" oninput="calc()"></div>
@@ -327,8 +328,10 @@
             <div class="metric"><div class="l">Refi NOI Basis</div><div class="v" id="refiNoiBasis"></div></div>
           </div>
         </div>
+      </div>
 
       <div id="tab-outputs" class="tab-panel hidden">
+        <div class="card"><h2>Generated Outputs</h2><p class="muted">Seller and investor messaging generated from the current assumptions.</p></div>
         <div class="card">
           <h2>Negotiation Generator</h2>
           <div class="btns noprint">
@@ -461,10 +464,10 @@
   function clearInputs() {
     setValue("dealName", "My Deal");
     setValue("marketCapRate", "8.5");
-    setValue("purchasePrice", "750000");
-    setValue("offerPrice", "750000");
+    setValue("purchasePrice", "100000");
+    setValue("offerPrice", "100000");
     setValue("downPct", "25");
-    setValue("downAmt", "187500");
+    setValue("downAmt", "25000");
     setValue("amortYears", "25");
     setValue("primeRate", CURRENT_PRIME.toFixed(2));
     setValue("spreadPct", "3.0");
