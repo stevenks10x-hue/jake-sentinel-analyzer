@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jake Sentinel Deal Analyzer v12.3</title>
+  <title>Jake Sentinel Deal Analyzer v12.4</title>
   <style>
     :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
     * { box-sizing:border-box; }
@@ -58,7 +58,7 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>Jake Sentinel Deal Analyzer v12.3</h1>
+        <h1>Jake Sentinel Deal Analyzer v12.4</h1>
         <p class="muted" style="margin-top:8px;">Adds detailed site-type blending, seasonality curves, and refinance projection for bank-ready presentation.</p>
       </div>
       <div class="btns noprint">
@@ -253,42 +253,45 @@
       <div id="tab-debt" class="tab-panel hidden">
         <div class="card">
           <h2>Debt & Closing</h2>
-          <p class="muted">Financing structure, cash needed, and lender debt sizing.</p>
+          <p class="muted">Financing structure, closing costs, cash required, and lender debt sizing.</p>
         </div>
-        <div class="metrics">
+<div class="metrics">
           <div class="metric"><div class="l">Base Loan Amount</div><div class="v" id="baseLoanAmount"></div></div>
           <div class="metric"><div class="l">Final Loan Amount</div><div class="v" id="loanAmount"></div><div class="s" id="loanAmountSub"></div></div>
           <div class="metric"><div class="l">Down Payment</div><div class="v" id="downPayment"></div><div class="s" id="downPaymentSub"></div></div>
           <div class="metric"><div class="l">Effective Rate</div><div class="v" id="effectiveRate"></div><div class="s" id="effectiveRateSub"></div></div>
           <div class="metric"><div class="l">Financing Fee</div><div class="v" id="feeAmount"></div><div class="s" id="feeAmountSub"></div></div>
           <div class="metric"><div class="l">Upfront Fee Cash</div><div class="v" id="upfrontFeeCash"></div></div>
-          <div class="metric"><div class="l">Closing Costs</div><div class="v" id="sumClosingDebt"></div><div class="s" id="closingCostDebtSub"></div></div>
+          <div class="metric"><div class="l">Closing Costs</div><div class="v" id="sumClosingDebt"></div></div>
           <div class="metric"><div class="l">Total Cash Required</div><div class="v" id="totalCashRequired"></div><div class="s">Down payment + closing + capex + upfront fee</div></div>
           <div class="metric"><div class="l">Annual Debt Service</div><div class="v" id="annualDebt"></div><div class="s" id="monthlyDebt"></div></div>
           <div class="metric"><div class="l">Max Loan (Lender)</div><div class="v" id="maxLoan"></div><div class="s">Based on lender NOI and target DSCR / LTV</div></div>
           <div class="metric"><div class="l">Loan Reality Check</div><div class="v" id="loanReality"></div><div class="s" id="loanRealitySub"></div></div>
           <div class="metric"><div class="l">Suggested Offer</div><div class="v" id="suggestedOffer"></div><div class="s">Based on lender NOI + target DSCR</div></div>
+          <div class="metric"><div class="l">Break-even Occupancy / Vacancy</div><div class="v" id="breakEvenOcc"></div></div>
         </div>
       </div>
+      </div>
 
-      
       <div id="tab-results" class="tab-panel hidden">
         <div class="card">
           <h2>Operating Results</h2>
-          <p class="muted">Revenue, NOI, DSCR, value, and deal signal.</p>
-        </div>
-        <div class="card signal">
-          <div>
-            <div class="muted">Deal Signal</div>
-            <div style="font-size:28px;font-weight:700;margin-top:4px" id="signalLabel"></div>
-            <div class="muted" style="font-size:12px;" id="signalWhy">Based on lender NOI, coverage, and break-even risk</div>
-          </div>
-          <div id="signalDot" class="dot stop"></div>
+          <p class="muted">Revenue, NOI, DSCR, cap rate, break-even, value, and deal signal.</p>
         </div>
         <div class="metrics">
           <div class="metric"><div class="l">Max Potential Revenue</div><div class="v" id="maxPotentialRevenueResults"></div><div class="s" id="maxPotentialSubResults"></div></div>
           <div class="metric"><div class="l">Base Case Revenue</div><div class="v" id="baseCaseRevenueResults"></div><div class="s" id="baseCaseSubResults"></div></div>
           <div class="metric"><div class="l">Conservative Revenue</div><div class="v" id="conservativeRevenueResults"></div><div class="s" id="conservativeSubResults"></div></div>
+        </div>
+<div class="card signal">
+          <div>
+            <div class="muted">Deal Signal</div>
+            <div style="font-size:28px;font-weight:700;margin-top:4px" id="signalLabel"></div>
+            <div class="muted" style="font-size:12px;" id="signalWhy">Based on DSCR, cash flow, and break-even risk</div>
+          </div>
+          <div id="signalDot" class="dot stop"></div>
+        </div>
+        <div class="metrics">
           <div class="metric"><div class="l">Effective Gross Income</div><div class="v" id="egi"></div></div>
           <div class="metric"><div class="l">Operating Expenses</div><div class="v" id="opex"></div></div>
           <div class="metric"><div class="l">Selected NOI</div><div class="v" id="noi"></div><div class="s" id="noiSub"></div></div>
@@ -296,17 +299,18 @@
           <div class="metric"><div class="l">Lender DSCR</div><div class="v" id="lenderDscr"></div><div class="s">Signal is based on this</div></div>
           <div class="metric"><div class="l">Base / Upside DSCR</div><div class="v" id="dscr"></div><div class="s" id="dscrSub"></div></div>
           <div class="metric"><div class="l">Cap Rate</div><div class="v" id="capRate"></div></div>
-          <div class="metric"><div class="l">Break-even Occupancy / Vacancy</div><div class="v" id="breakEvenOcc"></div></div>
+          <div class="metric"><div class="l">Cash on Cash</div><div class="v" id="cashOnCash"></div></div>
           <div class="metric"><div class="l">Implied Value</div><div class="v" id="impliedValue"></div></div>
         </div>
       </div>
+      </div>
 
-      
       <div id="tab-investor" class="tab-panel hidden">
         <div class="card">
           <h2>Investor Analysis</h2>
-          <p class="muted">Equity structure, projected distributions, and refinance outputs.</p>
+          <p class="muted">Equity structure, projected returns, and refinance outputs.</p>
         </div>
+<div class="card"><h2>Investor Analysis</h2><p class="muted">Equity structure, returns, and refinance projection.</p></div>
         <div class="card">
           <h2>Investor Inputs</h2>
           <div class="two">
@@ -344,14 +348,14 @@
           </div>
         </div>
       </div>
+      </div>
 
-      
       <div id="tab-outputs" class="tab-panel hidden">
         <div class="card">
           <h2>Generated Outputs</h2>
-          <p class="muted">Draft language generated from the current deal assumptions.</p>
+          <p class="muted">Seller and investor messaging generated from the current assumptions.</p>
         </div>
-        <div class="card">
+<div class="card">
           <h2>Negotiation Generator</h2>
           <div class="btns noprint">
             <button onclick="generateSellerMessage()">Generate Seller Message</button>
@@ -368,6 +372,8 @@
           <textarea id="investorMessage" readonly></textarea>
         </div>
       </div>
+      </div>
+
     </div>
 
     <div>
@@ -794,7 +800,6 @@ const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
     $("sumFee").textContent = `${money(r.feeAmount)} (${r.feeFinanced ? "financed" : "cash"})`;
     $("sumClosing").textContent = `${money(r.closingCosts)} (${($("closingCostMode") && $("closingCostMode").value === "auto") ? "auto" : "manual"})`;
     if ($("sumClosingDebt")) $("sumClosingDebt").textContent = money(r.closingCosts);
-    if ($("closingCostDebtSub")) $("closingCostDebtSub").textContent = ($("closingCostMode") && $("closingCostMode").value === "auto") ? "Auto closing cost engine" : "Manual closing cost input";
     $("sumCashReq").textContent = money(r.totalCashRequired);
     $("sumNoi").textContent = money(r.noi);
     $("sumDscr").textContent = r.lenderDscr.toFixed(2) + "x";
