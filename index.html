@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jake Sentinel Deal Analyzer v12</title>
+  <title>Jake Sentinel Deal Analyzer v11</title>
   <style>
     :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
     * { box-sizing:border-box; }
@@ -58,8 +58,8 @@
     <div class="topbar">
       <div>
         <div class="muted">Standalone calculator</div>
-        <h1>Jake Sentinel Deal Analyzer v12</h1>
-        <p class="muted" style="margin-top:8px;">Adds detailed site-type blending, seasonality curves, and refinance projection for bank-ready presentation.</p>
+        <h1>Jake Sentinel Deal Analyzer v11</h1>
+        <p class="muted" style="margin-top:8px;">Full revenue engine with RV site mix, tent sites, glamping domes, and lender vs operator toggles.</p>
       </div>
       <div class="btns noprint">
         <button class="asset active" id="asset-rv" onclick="setAsset('rv')">RV Park</button>
@@ -183,35 +183,6 @@
           </div>
 
         <div class="card">
-          <h2>Detailed Site Mix</h2>
-          <div class="two">
-            <div><label>Use Detailed Site Mix</label>
-              <select id="useDetailedMix" onchange="calc()">
-                <option value="no" selected>No - use Average Nightly Rate</option>
-                <option value="yes">Yes - auto blend site types</option>
-              </select>
-            </div>
-            <div><label>Blended Avg Nightly Rate (auto)</label><input id="blendedNightlyRate" type="number" value="47.25" readonly></div>
-            <div><label>50A Full-Service Sites</label><input id="sites50a" type="number" value="15" oninput="calc()"></div>
-            <div><label>50A Full-Service Rate</label><input id="rate50a" type="number" value="55" oninput="calc()"></div>
-            <div><label>30A Full-Service Sites</label><input id="sites30a" type="number" value="30" oninput="calc()"></div>
-            <div><label>30A Full-Service Rate</label><input id="rate30a" type="number" value="48" oninput="calc()"></div>
-            <div><label>Power-Only Sites</label><input id="sitesPower" type="number" value="15" oninput="calc()"></div>
-            <div><label>Power-Only Rate</label><input id="ratePower" type="number" value="38" oninput="calc()"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Seasonality Curve</h2>
-          <div class="two">
-            <div><label>Peak Season Share %</label><input id="peakShare" type="number" value="60" oninput="calc()"></div>
-            <div><label>Shoulder Season Share %</label><input id="shoulderShare" type="number" value="30" oninput="calc()"></div>
-            <div><label>Off-Season Share %</label><input id="offseasonShare" type="number" value="10" oninput="calc()"></div>
-            <div><label>Seasonality Note</label><input id="seasonalityNote" type="text" value="Peak / Shoulder / Off-season weighting" oninput="calc()"></div>
-          </div>
-        </div>
-
-        <div class="card">
           <h2>Supplemental Revenue</h2>
           <div class="two">
             <div><label>Tent Sites (count)</label><input id="tentSites" type="number" value="10" oninput="calc()"></div>
@@ -311,22 +282,6 @@
           <div class="metric"><div class="l">Projected Stabilized NOI</div><div class="v" id="futureNoi"></div></div>
         </div>
       </div>
-
-      <div class="card">
-          <h2>Refinance Projection</h2>
-          <div class="two">
-            <div><label>Refi Year</label><input id="refiYear" type="number" value="2" oninput="calc()"></div>
-            <div><label>Refi Cap Rate %</label><input id="refiCapRate" type="number" value="10" oninput="calc()"></div>
-            <div><label>Refi LTV %</label><input id="refiLtv" type="number" value="70" oninput="calc()"></div>
-            <div><label>Refi Cost %</label><input id="refiCostPct" type="number" value="3" oninput="calc()"></div>
-          </div>
-          <div class="metrics" style="margin-top:16px;">
-            <div class="metric"><div class="l">Refi Value</div><div class="v" id="refiValue"></div></div>
-            <div class="metric"><div class="l">Refi Loan Proceeds</div><div class="v" id="refiLoan"></div></div>
-            <div class="metric"><div class="l">Estimated Equity Release</div><div class="v" id="refiEquityRelease"></div></div>
-            <div class="metric"><div class="l">Refi NOI Basis</div><div class="v" id="refiNoiBasis"></div></div>
-          </div>
-        </div>
 
       <div id="tab-outputs" class="tab-panel hidden">
         <div class="card">
@@ -446,7 +401,7 @@
     calc();
   }
   function clearAllInputs() {
-    ["dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears","primeRate","spreadPct","feePct","targetDscr","targetLtv","noiMode","lenderNoi","closingCostMode","legalFees","dueDiligenceCosts","registrationCosts","miscClosingCosts","closingCostsManual","capexReserve","occupancyPct","conservativeOccPct","nightlySites","operatingDays","nightlyRate","seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites","annualMonthlyRate","otherIncome","expenseRatio","investorEquity","sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct","unitCount","avgMonthlyRent","vacancyPct","conservativeVacancyPct","mfOtherIncome","mfExpenseRatio","marketCapRate","useDetailedMix","blendedNightlyRate","sites50a","rate50a","sites30a","rate30a","sitesPower","ratePower","peakShare","shoulderShare","offseasonShare","seasonalityNote","refiYear","refiCapRate","refiLtv","refiCostPct"].forEach(id => {
+    ["dealName","purchasePrice","offerPrice","downPct","downAmt","amortYears","primeRate","spreadPct","feePct","targetDscr","targetLtv","noiMode","lenderNoi","closingCostMode","legalFees","dueDiligenceCosts","registrationCosts","miscClosingCosts","closingCostsManual","capexReserve","occupancyPct","conservativeOccPct","nightlySites","operatingDays","nightlyRate","seasonalSites","seasonalMonthlyRate","seasonalMonths","annualSites","annualMonthlyRate","otherIncome","expenseRatio","investorEquity","sponsorEquity","prefReturnPct","investorSplitPct","holdYears","noiGrowthPct","unitCount","avgMonthlyRent","vacancyPct","conservativeVacancyPct","mfOtherIncome","mfExpenseRatio","marketCapRate"].forEach(id => {
       const el = $(id);
       if (!el) return;
       if (el.type === "checkbox") el.checked = false;
@@ -499,22 +454,6 @@
     setValue("investorSplitPct", "30");
     setValue("holdYears", "5");
     setValue("noiGrowthPct", "3");
-    setValue("useDetailedMix", "no");
-    setValue("blendedNightlyRate", "47.25");
-    setValue("sites50a", "15");
-    setValue("rate50a", "55");
-    setValue("sites30a", "30");
-    setValue("rate30a", "48");
-    setValue("sitesPower", "15");
-    setValue("ratePower", "38");
-    setValue("peakShare", "60");
-    setValue("shoulderShare", "30");
-    setValue("offseasonShare", "10");
-    setValue("seasonalityNote", "Peak / Shoulder / Off-season weighting");
-    setValue("refiYear", "2");
-    setValue("refiCapRate", "10");
-    setValue("refiLtv", "70");
-    setValue("refiCostPct", "3");
     setValue("unitCount", "12");
     setValue("avgMonthlyRent", "1450");
     setValue("vacancyPct", "5");
@@ -564,14 +503,6 @@
     const closingCosts = closingData.closingCosts;
 
     let primaryRevenue = 0, secondaryRevenue = 0, annualRevenue = 0, egi = 0, opex = 0, breakEvenMetric = 0;
-    const detailedMixOn = $("useDetailedMix") && $("useDetailedMix").value === "yes";
-    const totalDetailedSites = nv("sites50a") + nv("sites30a") + nv("sitesPower");
-    const detailedNightlyRevenueAtFull = (nv("sites50a") * nv("rate50a")) + (nv("sites30a") * nv("rate30a")) + (nv("sitesPower") * nv("ratePower"));
-    const autoBlendedRate = totalDetailedSites > 0 ? detailedNightlyRevenueAtFull / totalDetailedSites : 0;
-    if ($("blendedNightlyRate")) $("blendedNightlyRate").value = autoBlendedRate.toFixed(2);
-    const avgNightlyRateToUse = detailedMixOn ? autoBlendedRate : nv("nightlyRate");
-    const weightedSeasonality = (nv("peakShare") + nv("shoulderShare") + nv("offseasonShare")) > 0 ? 1 : 1;
-
     let maxPotentialRevenue = 0, baseCaseRevenue = 0, conservativeRevenue = 0;
     let maxPotentialSub = "", baseCaseSub = "", conservativeSub = "";
 
@@ -593,8 +524,7 @@
       baseCaseSub = `Using ${nv("vacancyPct").toFixed(2)}% vacancy`;
       conservativeSub = `Using ${nv("conservativeVacancyPct").toFixed(2)}% vacancy`;
     } else {
-      const nightlySiteCount = detailedMixOn && totalDetailedSites > 0 ? totalDetailedSites : nv("nightlySites");
-      const nightlyMax = nightlySiteCount * nv("operatingDays") * avgNightlyRateToUse;
+      const nightlyMax = nv("nightlySites") * nv("operatingDays") * nv("nightlyRate");
       const nightlyBase = nightlyMax * (nv("occupancyPct") / 100);
       const nightlyConservative = nightlyMax * (nv("conservativeOccPct") / 100);
       const seasonalRevenue = nv("seasonalSites") * nv("seasonalMonthlyRate") * nv("seasonalMonths");
@@ -642,11 +572,11 @@ const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
     }
     const lenderNoi = lenderNoiAdjusted;
     const selectedMode = $("noiMode") ? $("noiMode").value : "lender";
-    const noi = selectedMode === "base" ? baseNoiWithExtras : (selectedMode === "upside" ? upsideNoi : lenderNoi);
+    const noi = selectedMode === "base" ? baseNoi : (selectedMode === "upside" ? upsideNoi : lenderNoi);
     const cashFlow = noi - annualDebt;
     const lenderCashFlow = lenderNoi - annualDebt;
     const lenderDscr = annualDebt > 0 ? lenderNoi / annualDebt : 0;
-    const baseDscr = annualDebt > 0 ? baseNoiWithExtras / annualDebt : 0;
+    const baseDscr = annualDebt > 0 ? baseNoi / annualDebt : 0;
     const upsideDscr = annualDebt > 0 ? upsideNoi / annualDebt : 0;
     const dscr = annualDebt > 0 ? noi / annualDebt : 0;
     const capRate = price > 0 ? noi / price : 0;
@@ -683,17 +613,11 @@ const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
     const investorTotalDists = totalInvestorPref + investorProfitShare;
     const investorEquityMultiple = investorEquity > 0 ? investorTotalDists / investorEquity : 0;
 
-    const refiNoiBasis = baseNoiWithExtras * Math.pow(1 + noiGrowthPct / 100, Math.max(0, nv("refiYear")));
-    const refiValue = nv("refiCapRate") > 0 ? refiNoiBasis / (nv("refiCapRate") / 100) : 0;
-    const refiLoan = refiValue * (nv("refiLtv") / 100);
-    const refiCosts = refiLoan * (nv("refiCostPct") / 100);
-    const refiEquityRelease = Math.max(0, refiLoan - loan - refiCosts);
-
     return { price, down, baseLoan, loan, feeAmount, upfrontFeeCash, effectiveRate, primeRate, spreadPct, feePct, feeFinanced,
       annualDebt, monthlyDebt, primaryRevenue, secondaryRevenue, annualRevenue, egi, opex, noi, cashFlow, dscr, capRate, cashOnCash,
       impliedValue, maxLoan, suggestedOffer, breakEvenMetric, signal, totalProjectCost, totalEquityRequired, investorEquity, sponsorEquity,
       prefReturnPct, investorSplitPct, holdYears, noiGrowthPct, futureNoi, investorAnnualPref, investorProfitShare, sponsorProfitShare,
-      investorTotalDists, investorEquityMultiple, maxPotentialRevenue, baseCaseRevenue, conservativeRevenue, maxPotentialSub, baseCaseSub, conservativeSub, closingCosts, closingCostDetail: closingData.closingCostDetail, totalCashRequired, lenderNoi, baseNoi, conservativeNoi, upsideNoi, lenderDscr, baseDscr, upsideDscr, lenderCashFlow, selectedMode, tentRevenue, domeBase, autoBlendedRate, avgNightlyRateToUse, refiNoiBasis, refiValue, refiLoan, refiEquityRelease };
+      investorTotalDists, investorEquityMultiple, maxPotentialRevenue, baseCaseRevenue, conservativeRevenue, maxPotentialSub, baseCaseSub, conservativeSub, closingCosts, closingCostDetail: closingData.closingCostDetail, totalCashRequired, lenderNoi, baseNoi, conservativeNoi, upsideNoi, lenderDscr, baseDscr, upsideDscr, lenderCashFlow, selectedMode, tentRevenue, domeBase };
   }
   function calc() {
     if ($("downAmt")) {
@@ -731,7 +655,7 @@ const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
     $("egi").textContent = money(r.egi);
     $("opex").textContent = money(r.opex);
     $("noi").textContent = money(r.noi);
-    $("noiSub").textContent = `Selected ${modeLabel(r.selectedMode)} | Lender ${money(r.lenderNoi)} | Base ${money(r.baseNoi + r.tentRevenue + r.domeBase)} | Upside ${money(r.upsideNoi)} | Avg Rate ${r.avgNightlyRateToUse.toFixed(2)}`;
+    $("noiSub").textContent = `Selected ${modeLabel(r.selectedMode)} | Lender ${money(r.lenderNoi)} | Base ${money(r.baseNoi)} | Upside ${money(r.upsideNoi)}`;
     $("cashFlow").textContent = money(r.cashFlow);
     $("cashFlowSub").textContent = `Lender cash flow ${money(r.lenderCashFlow)}`;
     $("lenderDscr").textContent = r.lenderDscr.toFixed(2) + "x";
@@ -748,10 +672,6 @@ const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
     $("investorTotalDists").textContent = money(r.investorTotalDists);
     $("investorEquityMultiple").textContent = r.investorEquityMultiple.toFixed(2) + "x";
     $("futureNoi").textContent = money(r.futureNoi);
-    if ($("refiValue")) $("refiValue").textContent = money(r.refiValue);
-    if ($("refiLoan")) $("refiLoan").textContent = money(r.refiLoan);
-    if ($("refiEquityRelease")) $("refiEquityRelease").textContent = money(r.refiEquityRelease);
-    if ($("refiNoiBasis")) $("refiNoiBasis").textContent = money(r.refiNoiBasis);
     $("maxPotentialRevenue").textContent = money(r.maxPotentialRevenue);
     $("baseCaseRevenue").textContent = money(r.baseCaseRevenue);
     $("conservativeRevenue").textContent = money(r.conservativeRevenue);
@@ -812,7 +732,6 @@ const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
       `• Profit split to investor after pref: ${r.investorSplitPct.toFixed(2)}%\n` +
       `• Hold period: ${r.holdYears} years\n` +
       `• Max potential revenue: ${money(r.maxPotentialRevenue)}\n` +
-      `• Auto blended average nightly rate: ${r.avgNightlyRateToUse.toFixed(2)}\n` +
       `• Base case revenue: ${money(r.baseCaseRevenue)}\n` +
       `• Conservative revenue: ${money(r.conservativeRevenue)}\n` +
       `• Selected NOI: ${money(r.noi)}\n` +
@@ -821,9 +740,7 @@ const lenderNoiAdjusted = nv("lenderNoi") + domeLender;
       `• DSCR: ${r.dscr.toFixed(2)}x\n` +
       `• Signal: ${r.signal.label}\n` +
       `• Investor total distributions: ${money(r.investorTotalDists)}\n` +
-      `• Investor equity multiple: ${r.investorEquityMultiple.toFixed(2)}x\n` +
-      `• Refi value (illustrative): ${money(r.refiValue)}\n` +
-      `• Estimated equity release: ${money(r.refiEquityRelease)}\n\n` +
+      `• Investor equity multiple: ${r.investorEquityMultiple.toFixed(2)}x\n\n` +
       `This is a simplified investor summary based on the current underwriting assumptions.`;
   }
   function clearSellerMessage() { $("sellerMessage").value = ""; }
